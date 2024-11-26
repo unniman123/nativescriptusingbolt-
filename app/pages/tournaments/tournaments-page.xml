@@ -1,36 +1,46 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo" class="page">
-    <ActionBar title="Tournaments" class="action-bar">
-        <ActionItem tap="{{ createTournament }}" ios.position="right" android.position="actionBar">
-            <Label text="+" class="text-2xl font-bold text-white" />
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo">
+    <ActionBar title="Tournaments">
+        <ActionItem ios.position="right" android.position="actionBar">
+            <StackLayout orientation="horizontal">
+                <Button text="Open" tap="{{ filterByStatus }}" class="{{ _currentFilter === 'open' ? 'active-filter' : '' }}" />
+                <Button text="In Progress" tap="{{ filterByStatus }}" class="{{ _currentFilter === 'in_progress' ? 'active-filter' : '' }}" />
+                <Button text="Completed" tap="{{ filterByStatus }}" class="{{ _currentFilter === 'completed' ? 'active-filter' : '' }}" />
+            </StackLayout>
         </ActionItem>
     </ActionBar>
 
     <GridLayout rows="auto, *">
-        <StackLayout row="0" class="p-2 bg-gray-100">
-            <FlexboxLayout class="justify-between">
-                <Button text="All" tap="{{ filterByStatus }}" class="btn-sm" />
-                <Button text="Open" tap="{{ filterByStatus }}" class="btn-sm" />
-                <Button text="In Progress" tap="{{ filterByStatus }}" class="btn-sm" />
-                <Button text="Completed" tap="{{ filterByStatus }}" class="btn-sm" />
-            </FlexboxLayout>
-        </StackLayout>
+        <!-- Loading Indicator -->
+        <ActivityIndicator row="0" busy="{{ isLoading }}" visibility="{{ isLoading ? 'visible' : 'collapsed' }}" />
 
-        <ListView row="1" items="{{ tournaments }}" itemTap="{{ onTournamentTap }}" class="list-group">
-            <ListView.itemTemplate>
-                <GridLayout columns="*, auto" class="list-group-item p-4">
-                    <StackLayout col="0">
-                        <Label text="{{ title }}" class="font-bold text-lg" />
-                        <Label text="{{ 'Game: ' + game_type }}" class="text-gray-600" />
-                        <Label text="{{ 'Entry Fee: $' + entry_fee }}" class="text-gray-600" />
-                        <Label text="{{ 'Prize Pool: $' + prize_pool }}" class="text-green-600 font-bold" />
-                    </StackLayout>
-                    <StackLayout col="1" verticalAlignment="center">
-                        <Label text="{{ current_participants + '/' + max_participants }}" class="text-center" />
-                        <Label text="{{ status }}" class="text-center text-xs" />
-                    </StackLayout>
-                </GridLayout>
-            </ListView.itemTemplate>
-        </ListView>
+        <!-- Tournament List -->
+        <PullToRefresh row="1" refresh="{{ onPullToRefresh }}">
+            <ListView items="{{ tournaments }}" itemTap="{{ onTournamentTap }}" class="tournament-list">
+                <ListView.itemTemplate>
+                    <GridLayout columns="*, auto" rows="auto, auto" class="tournament-item" padding="10">
+                        <Label col="0" row="0" text="{{ title }}" class="tournament-title" />
+                        <Label col="1" row="0" text="{{ 'Entry: ₹' + entry_fee }}" class="tournament-fee" />
+                        
+                        <GridLayout col="0" row="1" columns="auto, auto, *" class="tournament-info">
+                            <Label col="0" text="{{ game_type }}" class="game-type" />
+                            <Label col="1" text="{{ current_participants + '/' + max_participants }}" class="participants" />
+                            <Label col="2" text="{{ start_time | timeFromNow }}" class="start-time" horizontalAlignment="right" />
+                        </GridLayout>
+                        
+                        <StackLayout col="1" row="1" orientation="horizontal">
+                            <Label text="{{ 'Prize: ₹' + prize_pool }}" class="prize-pool" />
+                            <Label text="{{ status }}" class="status-{{ status }}" />
+                        </StackLayout>
+                    </GridLayout>
+                </ListView.itemTemplate>
+            </ListView>
+        </PullToRefresh>
+
+        <!-- Empty State -->
+        <StackLayout row="1" visibility="{{ !isLoading && tournaments.length === 0 ? 'visible' : 'collapsed' }}" 
+                     horizontalAlignment="center" verticalAlignment="center">
+            <Label text="No tournaments found" class="empty-message" />
+            <Label text="Pull to refresh" class="empty-submessage" />
+        </StackLayout>
     </GridLayout>
 </Page>

@@ -1,10 +1,11 @@
-import { Observable } from '@nativescript/core';
+import { Observable, alert } from '@nativescript/core';
 import { TournamentService } from '../../services/tournament-service';
 import type { Tournament } from '../../services/supabase';
 
 export class TournamentsViewModel extends Observable {
     private _tournaments: Tournament[] = [];
-    private _currentFilter: string = 'all';
+    private _isLoading: boolean = false;
+    private _currentFilter: string = 'open';
 
     constructor() {
         super();
@@ -15,47 +16,50 @@ export class TournamentsViewModel extends Observable {
         return this._tournaments;
     }
 
-    set tournaments(value: Tournament[]) {
-        if (this._tournaments !== value) {
-            this._tournaments = value;
-            this.notifyPropertyChange('tournaments', value);
+    get isLoading(): boolean {
+        return this._isLoading;
+    }
+
+    set isLoading(value: boolean) {
+        if (this._isLoading !== value) {
+            this._isLoading = value;
+            this.notifyPropertyChange('isLoading', value);
         }
     }
 
     async loadTournaments() {
-        try {
-            const filters = this._currentFilter !== 'all' 
-                ? { status: this._currentFilter as 'open' | 'in_progress' | 'completed' }
-                : undefined;
+        if (this.isLoading) return;
 
-            this.tournaments = await TournamentService.listTournaments(filters);
+        try {
+            this.isLoading = true;
+            const filters = {
+                status: this._currentFilter as 'open' | 'in_progress' | 'completed'
+            };
+
+            this._tournaments = await TournamentService.listTournaments(filters);
+            this.notifyPropertyChange('tournaments', this._tournaments);
         } catch (error) {
             console.error('Failed to load tournaments:', error);
             alert({
                 title: 'Error',
-                message: 'Failed to load tournaments. Please try again.',
+                message: error.message || 'Failed to load tournaments',
                 okButtonText: 'OK'
             });
+        } finally {
+            this.isLoading = false;
         }
     }
 
     async filterByStatus(args: any) {
         const button = args.object;
-        this._currentFilter = button.text.toLowerCase().replace(' ', '_');
+        this._currentFilter = button.text.toLowerCase();
         await this.loadTournaments();
     }
 
-    onTournamentTap(args: any) {
-        const tournament = this._tournaments[args.index];
-        const frame = require('@nativescript/core').Frame;
-        frame.topmost().navigate({
-            moduleName: 'pages/tournaments/tournament-detail-page',
-            context: { tournamentId: tournament.id }
+    onPullToRefresh(args: any) {
+        const pullRefresh = args.object;
+        this.loadTournaments().then(() => {
+            pullRefresh.refreshing = false;
         });
-    }
-
-    createTournament() {
-        const frame = require('@nativescript/core').Frame;
-        frame.topmost().navigate('pages/tournaments/create-tournament-page');
     }
 }
