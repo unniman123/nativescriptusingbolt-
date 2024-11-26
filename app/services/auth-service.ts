@@ -10,6 +10,8 @@ class AuthService extends Observable {
     private _isEmailVerified: boolean = false;
     private readonly SESSION_KEY = 'auth_session';
     private readonly TFA_KEY = 'tfa_enabled';
+    private readonly VERIFICATION_RESEND_DELAY = 60000; // 1 minute
+    private _lastVerificationEmailSent: number = 0;
 
     private constructor() {
         super();
@@ -108,10 +110,40 @@ class AuthService extends Observable {
         }
     }
 
+    async handleDeepLink(url: string): Promise<void> {
+        try {
+            if (url.includes('verify-email') || url.includes('verify-signup')) {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (error) throw error;
+
+                if (user) {
+                    await this.checkEmailVerification();
+                    if (this._isEmailVerified) {
+                        alert({
+                            title: "Success",
+                            message: "Your email has been verified successfully!",
+                            okButtonText: "OK"
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('[Auth] Deep link handling error:', error);
+            throw error;
+        }
+    }
+
     async sendVerificationEmail(): Promise<void> {
         if (!this._currentUser?.email) {
             console.log('[Auth] No user email found for verification');
             throw new Error('No user email found');
+        }
+
+        // Check rate limiting
+        const now = Date.now();
+        if (now - this._lastVerificationEmailSent < this.VERIFICATION_RESEND_DELAY) {
+            const remainingSeconds = Math.ceil((this.VERIFICATION_RESEND_DELAY - (now - this._lastVerificationEmailSent)) / 1000);
+            throw new Error(`Please wait ${remainingSeconds} seconds before requesting another verification email`);
         }
 
         try {
@@ -122,6 +154,7 @@ class AuthService extends Observable {
             });
 
             if (error) throw error;
+            this._lastVerificationEmailSent = now;
             console.log('[Auth] Verification email sent successfully');
 
             alert({
@@ -132,24 +165,6 @@ class AuthService extends Observable {
         } catch (error) {
             console.error('[Auth] Failed to send verification email:', error);
             throw error;
-        }
-    }
-
-    private async loadTwoFactorStatus() {
-        try {
-            const { data, error } = await supabase
-                .from('user_settings')
-                .select('two_factor_enabled')
-                .eq('user_id', this._currentUser.id)
-                .single();
-            
-            if (data) {
-                this._isTwoFactorEnabled = data.two_factor_enabled;
-                ApplicationSettings.setBoolean(this.TFA_KEY, this._isTwoFactorEnabled);
-                this.notifyPropertyChange('isTwoFactorEnabled', this._isTwoFactorEnabled);
-            }
-        } catch (error) {
-            console.error('Failed to load 2FA status:', error);
         }
     }
 
@@ -211,6 +226,24 @@ class AuthService extends Observable {
             password: newPassword
         });
         if (error) throw error;
+    }
+
+    private async loadTwoFactorStatus() {
+        try {
+            const { data, error } = await supabase
+                .from('user_settings')
+                .select('two_factor_enabled')
+                .eq('user_id', this._currentUser.id)
+                .single();
+            
+            if (data) {
+                this._isTwoFactorEnabled = data.two_factor_enabled;
+                ApplicationSettings.setBoolean(this.TFA_KEY, this._isTwoFactorEnabled);
+                this.notifyPropertyChange('isTwoFactorEnabled', this._isTwoFactorEnabled);
+            }
+        } catch (error) {
+            console.error('Failed to load 2FA status:', error);
+        }
     }
 }
 
