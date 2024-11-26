@@ -77,3 +77,52 @@ begin
     where id = p_tournament_id;
 end;
 $$ language plpgsql;
+
+-- Generate Tournament Matches procedure
+create or replace function generate_tournament_matches(p_tournament_id uuid)
+returns void as $$
+declare
+    v_participants uuid[];
+    v_participant_count integer;
+    i integer;
+    j integer;
+begin
+    -- Get all participants for the tournament
+    select array_agg(user_id)
+    into v_participants
+    from tournament_participants
+    where tournament_id = p_tournament_id;
+
+    v_participant_count := array_length(v_participants, 1);
+
+    -- Check if we have enough participants
+    if v_participant_count < 2 then
+        raise exception 'Not enough participants to generate matches';
+    end if;
+
+    -- Generate matches in round-robin format
+    for i in 1..v_participant_count-1 loop
+        for j in i+1..v_participant_count loop
+            insert into matches (
+                tournament_id,
+                player1_id,
+                player2_id,
+                status,
+                scheduled_time
+            )
+            values (
+                p_tournament_id,
+                v_participants[i],
+                v_participants[j],
+                'scheduled',
+                now() + (interval '30 minutes' * ((i-1) * v_participant_count + j))
+            );
+        end loop;
+    end loop;
+
+    -- Update tournament status
+    update tournaments
+    set status = 'in_progress'
+    where id = p_tournament_id;
+end;
+$$ language plpgsql;
