@@ -1,5 +1,6 @@
 import { Observable, Frame, alert } from '@nativescript/core';
 import { supabase } from '../../services/supabase';
+import { authService } from '../../services/auth-service';
 
 export class LoginViewModel extends Observable {
     private _email: string = '';
@@ -8,6 +9,8 @@ export class LoginViewModel extends Observable {
     private _emailError: string = '';
     private _passwordError: string = '';
     private _errorMessage: string = '';
+    private _tfaCode: string = '';
+    private _showTfaInput: boolean = false;
 
     constructor() {
         super();
@@ -34,6 +37,28 @@ export class LoginViewModel extends Observable {
             this._password = value;
             this.notify({ object: this, eventName: Observable.propertyChangeEvent, propertyName: 'password', value });
             this.validatePassword();
+        }
+    }
+
+    get tfaCode(): string {
+        return this._tfaCode;
+    }
+
+    set tfaCode(value: string) {
+        if (this._tfaCode !== value) {
+            this._tfaCode = value;
+            this.notify({ object: this, eventName: Observable.propertyChangeEvent, propertyName: 'tfaCode', value });
+        }
+    }
+
+    get showTfaInput(): boolean {
+        return this._showTfaInput;
+    }
+
+    set showTfaInput(value: boolean) {
+        if (this._showTfaInput !== value) {
+            this._showTfaInput = value;
+            this.notify({ object: this, eventName: Observable.propertyChangeEvent, propertyName: 'showTfaInput', value });
         }
     }
 
@@ -102,43 +127,86 @@ export class LoginViewModel extends Observable {
         }
     }
 
-    async onLogin() {
+    async login() {
         try {
-            this.validateEmail();
-            this.validatePassword();
-
-            if (this.emailError || this.passwordError) {
-                return;
-            }
-
             this.isLoading = true;
             this.errorMessage = '';
 
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: this.email,
-                password: this.password
+            if (!this.validateForm()) {
+                return;
+            }
+
+            const { data: { user }, error } = await supabase.auth.signInWithPassword({
+                email: this._email,
+                password: this._password
             });
 
             if (error) throw error;
 
-            if (data?.session) {
-                // Navigate to main page
-                const frame = Frame.topmost();
-                frame.navigate({
-                    moduleName: "pages/tournaments/tournaments-page",
-                    clearHistory: true
-                });
+            if (user && authService.isTwoFactorEnabled) {
+                this.showTfaInput = true;
+                return;
             }
+
+            Frame.topmost().navigate({
+                moduleName: 'app/pages/tournaments/tournaments-page'
+            });
+
         } catch (error) {
             console.error('Login error:', error);
-            this.errorMessage = error.message || 'Failed to login. Please try again.';
+            this.errorMessage = error.message;
         } finally {
             this.isLoading = false;
         }
     }
 
-    onRegister() {
-        const frame = Frame.topmost();
-        frame.navigate("pages/auth/register-page");
+    async verifyTfaCode() {
+        try {
+            this.isLoading = true;
+            this.errorMessage = '';
+
+            if (!this._tfaCode) {
+                this.errorMessage = 'Please enter the 2FA code';
+                return;
+            }
+
+            const isValid = await authService.verifyTwoFactorToken(this._tfaCode);
+            
+            if (!isValid) {
+                this.errorMessage = 'Invalid 2FA code';
+                return;
+            }
+
+            Frame.topmost().navigate({
+                moduleName: 'app/pages/tournaments/tournaments-page'
+            });
+
+        } catch (error) {
+            console.error('2FA verification error:', error);
+            this.errorMessage = error.message;
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    async loginWithGoogle() {
+        try {
+            this.isLoading = true;
+            this.errorMessage = '';
+            
+            await authService.signInWithProvider('google');
+            
+        } catch (error) {
+            console.error('Google login error:', error);
+            this.errorMessage = error.message;
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    private validateForm(): boolean {
+        this.validateEmail();
+        this.validatePassword();
+        return !this._emailError && !this._passwordError;
     }
 }
