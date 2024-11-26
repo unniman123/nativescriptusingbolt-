@@ -1,16 +1,72 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo" class="page">
-    <ActionBar title="Login" class="action-bar" />
+    <ActionBar title="Login" class="action-bar">
+        <NavigationButton visibility="collapsed" />
+    </ActionBar>
     
-    <StackLayout class="p-4">
-        <Label text="Welcome back!" class="text-2xl font-bold mb-4" />
-        
-        <TextField hint="Email" text="{{ email }}" keyboardType="email" class="input mb-2" />
-        <TextField hint="Password" text="{{ password }}" secure="true" class="input mb-4" />
-        
-        <Button text="Login" tap="{{ onLogin }}" class="btn btn-primary mb-2" />
-        <Button text="Register" tap="{{ onRegister }}" class="btn btn-secondary" />
-        
-        <ActivityIndicator busy="{{ isLoading }}" class="m-4" />
-    </StackLayout>
+    <GridLayout>
+        <!-- Offline Banner -->
+        <Label text="You are offline. Login will be available when connection is restored." 
+               class="offline-banner p-2 text-center" 
+               visibility="{{ isOffline ? 'visible' : 'collapsed' }}"
+               horizontalAlignment="center"
+               verticalAlignment="top"/>
+               
+        <ScrollView>
+            <StackLayout class="p-4" verticalAlignment="center">
+                <Label text="Welcome back!" class="h1 text-center" marginBottom="20" />
+                
+                <!-- Email Field -->
+                <Label text="Email" class="label" />
+                <TextField 
+                    hint="Enter your email" 
+                    text="{{ email }}" 
+                    keyboardType="email" 
+                    autocorrect="false"
+                    autocapitalizationType="none"
+                    returnKeyType="next"
+                    class="input" 
+                    marginBottom="10"
+                    isEnabled="{{ !isLoading }}" />
+                <Label text="{{ emailError }}" class="error-label" visibility="{{ emailError ? 'visible' : 'collapsed' }}" />
+                
+                <!-- Password Field -->
+                <Label text="Password" class="label" />
+                <TextField 
+                    hint="Enter your password" 
+                    text="{{ password }}" 
+                    secure="true"
+                    returnKeyType="done"
+                    class="input"
+                    marginBottom="10"
+                    isEnabled="{{ !isLoading }}" />
+                <Label text="{{ passwordError }}" class="error-label" visibility="{{ passwordError ? 'visible' : 'collapsed' }}" />
+                
+                <!-- Login Button -->
+                <Button 
+                    text="{{ isLoading ? 'Logging in...' : 'Login' }}" 
+                    tap="{{ onLogin }}" 
+                    class="btn btn-primary" 
+                    marginTop="10"
+                    isEnabled="{{ !isLoading && !isOffline && email.length > 0 && password.length > 0 }}" />
+                    
+                <!-- Register Link -->
+                <StackLayout orientation="horizontal" horizontalAlignment="center" marginTop="20">
+                    <Label text="Don't have an account? " />
+                    <Label text="Register here" tap="{{ onRegister }}" class="link" />
+                </StackLayout>
+                
+                <!-- Loading Indicator -->
+                <ActivityIndicator busy="{{ isLoading }}" marginTop="20" />
+                
+                <!-- Error Message -->
+                <Label 
+                    text="{{ errorMessage }}" 
+                    class="error-message text-center" 
+                    textWrap="true"
+                    visibility="{{ errorMessage ? 'visible' : 'collapsed' }}"
+                    marginTop="10" />
+            </StackLayout>
+        </ScrollView>
+    </GridLayout>
 </Page>

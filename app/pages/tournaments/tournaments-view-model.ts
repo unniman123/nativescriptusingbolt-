@@ -1,4 +1,5 @@
-import { Observable, alert } from '@nativescript/core';
+import { Frame } from '@nativescript/core';
+import { Observable, alert, EventData } from '@nativescript/core';
 import { TournamentService } from '../../services/tournament-service';
 import type { Tournament } from '../../services/supabase';
 
@@ -23,7 +24,7 @@ export class TournamentsViewModel extends Observable {
     set isLoading(value: boolean) {
         if (this._isLoading !== value) {
             this._isLoading = value;
-            this.notifyPropertyChange('isLoading', value);
+            this.notify({ object: this, eventName: Observable.propertyChangeEvent, propertyName: 'isLoading', value });
         }
     }
 
@@ -37,7 +38,7 @@ export class TournamentsViewModel extends Observable {
             };
 
             this._tournaments = await TournamentService.listTournaments(filters);
-            this.notifyPropertyChange('tournaments', this._tournaments);
+            this.notify({ object: this, eventName: Observable.propertyChangeEvent, propertyName: 'tournaments', value: this._tournaments });
         } catch (error) {
             console.error('Failed to load tournaments:', error);
             alert({
@@ -50,16 +51,31 @@ export class TournamentsViewModel extends Observable {
         }
     }
 
-    async filterByStatus(args: any) {
-        const button = args.object;
-        this._currentFilter = button.text.toLowerCase();
-        await this.loadTournaments();
-    }
+    // Existing methods
+async filterByStatus(args: any) {
+    const button = args.object;
+    this._currentFilter = button.text.toLowerCase();
+    await this.loadTournaments();
+}
 
-    onPullToRefresh(args: any) {
-        const pullRefresh = args.object;
-        this.loadTournaments().then(() => {
-            pullRefresh.refreshing = false;
-        });
-    }
+// Add this method here
+onTournamentTap(args: any) {
+    const tournament = this._tournaments[args.index];
+    const navigationEntry = {
+        moduleName: "pages/tournaments/tournament-detail-page",
+        context: {
+            tournament: tournament
+        },
+        animated: true
+    };
+    const frame = Frame.topmost();
+    frame.navigate(navigationEntry);
+}
+
+// Existing methods
+onPullToRefresh(args: any) {
+    const pullRefresh = args.object;
+    this.loadTournaments().then(() => {
+        pullRefresh.refreshing = false;
+    });
 }

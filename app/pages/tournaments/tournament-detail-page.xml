@@ -1,44 +1,52 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo" class="page">
-    <ActionBar title="Tournament Details" class="action-bar">
-        <NavigationButton visibility="{{ canGoBack ? 'visible' : 'collapsed' }}" />
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo">
+    <ActionBar title="Tournament Details">
+        <NavigationButton text="Back" android.systemIcon="ic_menu_back" />
     </ActionBar>
 
     <ScrollView>
-        <StackLayout class="p-4">
-            <Label text="{{ tournament.title }}" class="text-2xl font-bold mb-4" />
-            
-            <GridLayout columns="*, *" rows="auto, auto, auto" class="mb-4">
-                <Label col="0" row="0" text="Game Type:" class="text-gray-600" />
-                <Label col="1" row="0" text="{{ tournament.game_type }}" class="font-bold" />
-                
-                <Label col="0" row="1" text="Entry Fee:" class="text-gray-600" />
-                <Label col="1" row="1" text="{{ '$' + tournament.entry_fee }}" class="font-bold" />
-                
-                <Label col="0" row="2" text="Prize Pool:" class="text-gray-600" />
-                <Label col="1" row="2" text="{{ '$' + tournament.prize_pool }}" class="font-bold text-green-600" />
+        <StackLayout padding="20">
+            <!-- Tournament Title -->
+            <Label text="{{ tournament.title }}" class="h2" textWrap="true" marginBottom="10" />
+
+            <!-- Game Info -->
+            <GridLayout columns="auto, *" rows="auto, auto, auto, auto" class="info-grid" margin="0 0 20 0">
+                <Label col="0" row="0" text="Game Type:" class="info-label" />
+                <Label col="1" row="0" text="{{ tournament.game_type }}" class="info-value" />
+
+                <Label col="0" row="1" text="Entry Fee:" class="info-label" />
+                <Label col="1" row="1" text="{{ '₹' + tournament.entry_fee }}" class="info-value" />
+
+                <Label col="0" row="2" text="Prize Pool:" class="info-label" />
+                <Label col="1" row="2" text="{{ '₹' + tournament.prize_pool }}" class="info-value" />
+
+                <Label col="0" row="3" text="Players:" class="info-label" />
+                <Label col="1" row="3" text="{{ tournament.current_players + '/' + tournament.max_players }}" class="info-value" />
             </GridLayout>
 
-            <StackLayout class="bg-gray-100 p-4 rounded-lg mb-4">
-                <Label text="Participants" class="font-bold mb-2" />
-                <Label text="{{ tournament.current_participants + ' / ' + tournament.max_participants }}" 
-                       class="text-center text-lg" />
+            <!-- Tournament Status -->
+            <StackLayout class="status-container" margin="0 0 20 0">
+                <Label text="Status" class="info-label" />
+                <Label text="{{ tournament.status }}" class="status-{{ tournament.status }}" />
             </StackLayout>
 
+            <!-- Start Time -->
+            <StackLayout class="time-container" margin="0 0 20 0">
+                <Label text="Starts" class="info-label" />
+                <Label text="{{ tournament.start_time | date }}" class="info-value" />
+            </StackLayout>
+
+            <!-- Join Button -->
             <Button text="Join Tournament" 
                     tap="{{ joinTournament }}" 
-                    class="btn btn-primary"
-                    isEnabled="{{ canJoin }}" />
+                    class="btn btn-primary" 
+                    isEnabled="{{ tournament.status === 'open' && !isLoading }}
+                    visibility="{{ tournament.status === 'open' ? 'visible' : 'collapsed' }}" />
 
-            <Label text="Matches" class="font-bold mt-4 mb-2" />
-            <ListView items="{{ matches }}" class="list-group">
-                <ListView.itemTemplate>
-                    <GridLayout columns="*, auto" class="list-group-item p-4">
-                        <Label col="0" text="{{ 'Match ' + ($index + 1) }}" class="font-bold" />
-                        <Label col="1" text="{{ status }}" class="text-gray-600" />
-                    </GridLayout>
-                </ListView.itemTemplate>
-            </ListView>
+            <!-- Loading Indicator -->
+            <ActivityIndicator busy="{{ isLoading }}" 
+                             visibility="{{ isLoading ? 'visible' : 'collapsed' }}
+                             margin="10" />
         </StackLayout>
     </ScrollView>
 </Page>
