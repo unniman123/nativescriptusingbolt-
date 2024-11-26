@@ -4,69 +4,78 @@
         <NavigationButton visibility="collapsed" />
     </ActionBar>
     
-    <GridLayout>
+    <StackLayout class="p-20">
         <!-- Offline Banner -->
         <Label text="You are offline. Login will be available when connection is restored." 
                class="offline-banner p-2 text-center" 
                visibility="{{ isOffline ? 'visible' : 'collapsed' }}"
                horizontalAlignment="center"
                verticalAlignment="top"/>
-               
-        <ScrollView>
-            <StackLayout class="p-4" verticalAlignment="center">
-                <Label text="Welcome back!" class="h1 text-center" marginBottom="20" />
-                
-                <!-- Email Field -->
-                <Label text="Email" class="label" />
-                <TextField 
-                    hint="Enter your email" 
-                    text="{{ email }}" 
-                    keyboardType="email" 
-                    autocorrect="false"
-                    autocapitalizationType="none"
-                    returnKeyType="next"
-                    class="input" 
-                    marginBottom="10"
-                    isEnabled="{{ !isLoading }}" />
-                <Label text="{{ emailError }}" class="error-label" visibility="{{ emailError ? 'visible' : 'collapsed' }}" />
-                
-                <!-- Password Field -->
-                <Label text="Password" class="label" />
-                <TextField 
-                    hint="Enter your password" 
-                    text="{{ password }}" 
-                    secure="true"
-                    returnKeyType="done"
-                    class="input"
-                    marginBottom="10"
-                    isEnabled="{{ !isLoading }}" />
-                <Label text="{{ passwordError }}" class="error-label" visibility="{{ passwordError ? 'visible' : 'collapsed' }}" />
-                
-                <!-- Login Button -->
-                <Button 
-                    text="{{ isLoading ? 'Logging in...' : 'Login' }}" 
-                    tap="{{ onLogin }}" 
-                    class="btn btn-primary" 
-                    marginTop="10"
-                    isEnabled="{{ !isLoading && !isOffline && email.length > 0 && password.length > 0 }}" />
-                    
-                <!-- Register Link -->
-                <StackLayout orientation="horizontal" horizontalAlignment="center" marginTop="20">
-                    <Label text="Don't have an account? " />
-                    <Label text="Register here" tap="{{ onRegister }}" class="link" />
-                </StackLayout>
-                
-                <!-- Loading Indicator -->
-                <ActivityIndicator busy="{{ isLoading }}" marginTop="20" />
-                
-                <!-- Error Message -->
-                <Label 
-                    text="{{ errorMessage }}" 
-                    class="error-message text-center" 
-                    textWrap="true"
-                    visibility="{{ errorMessage ? 'visible' : 'collapsed' }}"
-                    marginTop="10" />
-            </StackLayout>
-        </ScrollView>
-    </GridLayout>
+        
+        <!-- Login Form -->
+        <StackLayout visibility="{{ !showVerificationPrompt ? 'visible' : 'collapsed' }}">
+            <!-- Email Field -->
+            <Label text="Email" class="label" />
+            <TextField 
+                hint="Enter your email" 
+                text="{{ email }}" 
+                keyboardType="email" 
+                autocorrect="false"
+                autocapitalizationType="none"
+                returnKeyType="next"
+                class="input" 
+                marginBottom="10"
+                isEnabled="{{ !isLoading }}" />
+            <Label text="{{ emailError }}" class="error-label" visibility="{{ emailError ? 'visible' : 'collapsed' }}" />
+            
+            <!-- Password Field -->
+            <Label text="Password" class="label" />
+            <TextField 
+                hint="Enter your password" 
+                text="{{ password }}" 
+                secure="true"
+                returnKeyType="done"
+                class="input"
+                marginBottom="10"
+                isEnabled="{{ !isLoading }}" />
+            <Label text="{{ passwordError }}" class="error-label" visibility="{{ passwordError ? 'visible' : 'collapsed' }}" />
+            
+            <!-- Login Button -->
+            <Button 
+                text="{{ isLoading ? 'Logging in...' : 'Login' }}" 
+                tap="{{ onLogin }}" 
+                class="btn btn-primary" 
+                marginTop="10"
+                isEnabled="{{ !isLoading && !isOffline && email.length > 0 && password.length > 0 }}" />
+        </StackLayout>
+        
+        <!-- Email Verification Prompt -->
+        <StackLayout visibility="{{ showVerificationPrompt ? 'visible' : 'collapsed' }}" class="verification-prompt">
+            <Label text="Email Verification Required" class="h2 text-center" />
+            <Label text="Please verify your email address to continue. Check your inbox for the verification link." textWrap="true" class="body m-10" />
+            <Button text="Resend Verification Email" 
+                    tap="{{ resendVerificationEmail }}" 
+                    isEnabled="{{ !isLoading }}" 
+                    class="btn btn-primary m-t-20" />
+            <Button text="Back to Login" 
+                    tap="{{ showVerificationPrompt = false }}" 
+                    class="btn btn-outline m-t-10" />
+        </StackLayout>
+        
+        <!-- Loading Indicator -->
+        <ActivityIndicator busy="{{ isLoading }}" class="activity-indicator" />
+        
+        <!-- Error Message -->
+        <Label 
+            text="{{ errorMessage }}" 
+            class="error-message text-center" 
+            textWrap="true"
+            visibility="{{ errorMessage ? 'visible' : 'collapsed' }}" />
+        
+        <!-- Register Link -->
+        <StackLayout orientation="horizontal" horizontalAlignment="center" marginTop="20">
+            <Label text="Don't have an account? " />
+            <Label text="Register here" tap="{{ onRegister }}" class="link" />
+        </StackLayout>
+    </StackLayout>
 </Page>

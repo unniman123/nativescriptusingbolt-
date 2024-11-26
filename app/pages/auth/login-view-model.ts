@@ -9,8 +9,7 @@ export class LoginViewModel extends Observable {
     private _emailError: string = '';
     private _passwordError: string = '';
     private _errorMessage: string = '';
-    private _tfaCode: string = '';
-    private _showTfaInput: boolean = false;
+    private _showVerificationPrompt: boolean = false;
 
     constructor() {
         super();
@@ -40,25 +39,14 @@ export class LoginViewModel extends Observable {
         }
     }
 
-    get tfaCode(): string {
-        return this._tfaCode;
+    get showVerificationPrompt(): boolean {
+        return this._showVerificationPrompt;
     }
 
-    set tfaCode(value: string) {
-        if (this._tfaCode !== value) {
-            this._tfaCode = value;
-            this.notify({ object: this, eventName: Observable.propertyChangeEvent, propertyName: 'tfaCode', value });
-        }
-    }
-
-    get showTfaInput(): boolean {
-        return this._showTfaInput;
-    }
-
-    set showTfaInput(value: boolean) {
-        if (this._showTfaInput !== value) {
-            this._showTfaInput = value;
-            this.notify({ object: this, eventName: Observable.propertyChangeEvent, propertyName: 'showTfaInput', value });
+    set showVerificationPrompt(value: boolean) {
+        if (this._showVerificationPrompt !== value) {
+            this._showVerificationPrompt = value;
+            this.notify({ object: this, eventName: Observable.propertyChangeEvent, propertyName: 'showVerificationPrompt', value });
         }
     }
 
@@ -143,14 +131,18 @@ export class LoginViewModel extends Observable {
 
             if (error) throw error;
 
-            if (user && authService.isTwoFactorEnabled) {
-                this.showTfaInput = true;
-                return;
-            }
+            if (user) {
+                const isVerified = await authService.checkEmailVerification();
+                if (!isVerified) {
+                    this.showVerificationPrompt = true;
+                    this.errorMessage = 'Please verify your email before logging in.';
+                    return;
+                }
 
-            Frame.topmost().navigate({
-                moduleName: 'app/pages/tournaments/tournaments-page'
-            });
+                Frame.topmost().navigate({
+                    moduleName: 'app/pages/tournaments/tournaments-page'
+                });
+            }
 
         } catch (error) {
             console.error('Login error:', error);
@@ -160,44 +152,17 @@ export class LoginViewModel extends Observable {
         }
     }
 
-    async verifyTfaCode() {
+    async resendVerificationEmail() {
         try {
             this.isLoading = true;
-            this.errorMessage = '';
-
-            if (!this._tfaCode) {
-                this.errorMessage = 'Please enter the 2FA code';
-                return;
-            }
-
-            const isValid = await authService.verifyTwoFactorToken(this._tfaCode);
-            
-            if (!isValid) {
-                this.errorMessage = 'Invalid 2FA code';
-                return;
-            }
-
-            Frame.topmost().navigate({
-                moduleName: 'app/pages/tournaments/tournaments-page'
+            await authService.sendVerificationEmail();
+            alert({
+                title: "Email Sent",
+                message: "Verification email has been resent. Please check your inbox.",
+                okButtonText: "OK"
             });
-
         } catch (error) {
-            console.error('2FA verification error:', error);
-            this.errorMessage = error.message;
-        } finally {
-            this.isLoading = false;
-        }
-    }
-
-    async loginWithGoogle() {
-        try {
-            this.isLoading = true;
-            this.errorMessage = '';
-            
-            await authService.signInWithProvider('google');
-            
-        } catch (error) {
-            console.error('Google login error:', error);
+            console.error('Failed to resend verification email:', error);
             this.errorMessage = error.message;
         } finally {
             this.isLoading = false;
