@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo">
+    <ActionBar title="Match Administration">
+        <NavigationButton text="Back" android.systemIcon="ic_menu_back" />
+    </ActionBar>
+
+    <GridLayout rows="auto, *">
+        <!-- Filters -->
+        <GridLayout row="0" columns="*, *, *" class="filter-bar" padding="10">
+            <Button col="0" text="All Matches" 
+                    tap="{{ filterMatches }}" 
+                    class="{{ filter === 'all' ? 'filter-active' : 'filter' }}" 
+                    data-filter="all" />
+            <Button col="1" text="Disputed" 
+                    tap="{{ filterMatches }}" 
+                    class="{{ filter === 'disputed' ? 'filter-active' : 'filter' }}" 
+                    data-filter="disputed" />
+            <Button col="2" text="Pending" 
+                    tap="{{ filterMatches }}" 
+                    class="{{ filter === 'pending' ? 'filter-active' : 'filter' }}" 
+                    data-filter="pending" />
+        </GridLayout>
+
+        <!-- Matches List -->
+        <GridLayout row="1" rows="auto, *">
+            <!-- Loading Indicator -->
+            <ActivityIndicator row="0" busy="{{ isLoading }}" 
+                             visibility="{{ isLoading ? 'visible' : 'collapsed' }}" />
+
+            <!-- Matches ListView -->
+            <ListView row="1" items="{{ matches }}" itemTap="{{ onMatchTap }}" class="match-list"
+                     pullToRefresh="true" @pullToRefreshInitiated="{{ onPullToRefresh }}">
+                <ListView.itemTemplate>
+                    <GridLayout columns="*, auto" rows="auto, auto, auto" class="match-item" padding="15">
+                        <!-- Tournament Info -->
+                        <Label col="0" row="0" text="{{ tournament.title }}" class="tournament-title" />
+                        <Label col="1" row="0" text="{{ status }}" class="match-status-{{ status }}" />
+                        
+                        <!-- Players -->
+                        <GridLayout col="0" colSpan="2" row="1" rows="auto" columns="*, auto, *" marginTop="10">
+                            <StackLayout col="0">
+                                <Label text="{{ player1.username }}" class="player-name" />
+                                <Label text="{{ player1_score }}" class="score" 
+                                       visibility="{{ status === 'completed' ? 'visible' : 'collapsed' }}" />
+                            </StackLayout>
+                            <Label col="1" text="vs" class="vs-text" />
+                            <StackLayout col="2">
+                                <Label text="{{ player2.username }}" class="player-name" />
+                                <Label text="{{ player2_score }}" class="score"
+                                       visibility="{{ status === 'completed' ? 'visible' : 'collapsed' }}" />
+                            </StackLayout>
+                        </GridLayout>
+
+                        <!-- Dispute Info -->
+                        <StackLayout col="0" colSpan="2" row="2" 
+                                   visibility="{{ status === 'disputed' ? 'visible' : 'collapsed' }}"
+                                   class="dispute-info" marginTop="10">
+                            <Label text="Disputed by: {{ disputed_by_username }}" class="dispute-by" />
+                            <Label text="{{ dispute_reason }}" class="dispute-reason" textWrap="true" />
+                            <Label text="{{ disputed_at | dateFormat }}" class="dispute-time" />
+                        </StackLayout>
+                    </GridLayout>
+                </ListView.itemTemplate>
+            </ListView>
+
+            <!-- Empty State -->
+            <StackLayout row="1" visibility="{{ !isLoading && (!matches || matches.length === 0) ? 'visible' : 'collapsed' }}"
+                        horizontalAlignment="center" verticalAlignment="center">
+                <Label text="No matches found" class="empty-message" />
+                <Label text="All matches requiring attention will appear here" class="empty-submessage" textWrap="true" />
+            </StackLayout>
+        </GridLayout>
+    </GridLayout>
+</Page>

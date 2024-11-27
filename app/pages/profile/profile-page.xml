@@ -1,44 +1,46 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo" class="page">
-    <ActionBar title="Profile" class="action-bar" />
+    <ActionBar title="Profile" class="action-bar">
+        <NavigationButton visibility="collapsed" />
+        <ActionItem text="Sign Out" 
+                   tap="{{ signOut }}" 
+                   ios.position="right" 
+                   android.position="actionBar" />
+    </ActionBar>
     
     <ScrollView>
         <StackLayout class="p-4">
-            <Image src="{{ profile.avatar_url || 'res://default_avatar' }}" 
-                   width="100" 
-                   height="100" 
-                   class="rounded-full mb-4" />
-            
-            <Label text="Username" class="text-gray-600 mb-1" />
+            <!-- Email Status -->
+            <GridLayout rows="auto" columns="*, auto" class="m-b-20">
+                <Label text="{{ email }}" col="0" class="body" />
+                <Label text="{{ isEmailVerified ? '✓ Verified' : '⚠️ Unverified' }}" 
+                       col="1"
+                       class="{{ isEmailVerified ? 'text-success' : 'text-warning' }}" />
+            </GridLayout>
+
+            <!-- Username -->
+            <Label text="Username" class="label" />
             <TextField text="{{ username }}" 
                       hint="Enter username" 
-                      class="input mb-4" />
+                      class="input m-b-10" />
             
-            <Label text="Game ID" class="text-gray-600 mb-1" />
+            <!-- Game ID -->
+            <Label text="Game ID" class="label" />
             <TextField text="{{ gameId }}" 
                       hint="Enter your game ID" 
-                      class="input mb-4" />
+                      class="input m-b-10" />
             
-            <Button text="Update Profile" 
+            <!-- Update Button -->
+            <Button text="{{ isLoading ? 'Updating...' : 'Update Profile' }}" 
                     tap="{{ updateProfile }}" 
-                    class="btn btn-primary mb-4" />
+                    isEnabled="{{ !isLoading }}"
+                    class="btn btn-primary m-t-20" />
             
-            <Label text="Match History" class="text-xl font-bold mb-2" />
-            <ListView items="{{ matchHistory }}" class="list-group">
-                <ListView.itemTemplate>
-                    <GridLayout columns="*, auto" class="list-group-item p-4">
-                        <StackLayout col="0">
-                            <Label text="{{ opponent }}" class="font-bold" />
-                            <Label text="{{ tournament }}" class="text-gray-600 text-sm" />
-                        </StackLayout>
-                        <StackLayout col="1" verticalAlignment="center">
-                            <Label text="{{ result }}" 
-                                   class="{{ result === 'Won' ? 'text-green-600' : 'text-red-600' }}" />
-                            <Label text="{{ created_at | date }}" class="text-gray-600 text-xs" />
-                        </StackLayout>
-                    </GridLayout>
-                </ListView.itemTemplate>
-            </ListView>
+            <!-- Error Message -->
+            <Label text="{{ errorMessage }}" 
+                   class="text-danger text-center" 
+                   textWrap="true"
+                   visibility="{{ errorMessage ? 'visible' : 'collapsed' }}" />
         </StackLayout>
     </ScrollView>
 </Page>

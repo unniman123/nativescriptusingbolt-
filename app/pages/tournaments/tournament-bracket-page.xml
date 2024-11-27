@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo">
+    <ActionBar title="Tournament Bracket">
+        <NavigationButton text="Back" android.systemIcon="ic_menu_back" />
+    </ActionBar>
+
+    <GridLayout rows="auto, *">
+        <!-- Tournament Info -->
+        <StackLayout row="0" class="tournament-info p-10">
+            <Label text="{{ tournament.title }}" class="tournament-title" />
+            <Label text="{{ tournament.status }}" class="status-badge status-{{ tournament.status }}" />
+        </StackLayout>
+
+        <!-- Bracket View -->
+        <ScrollView row="1" orientation="horizontal">
+            <ScrollView orientation="vertical">
+                <GridLayout id="bracketContainer" columns="auto, auto, auto" class="bracket-container p-10">
+                    <!-- Round 1 -->
+                    <StackLayout col="0" class="round-column">
+                        <Label text="Round 1" class="round-title" />
+                        <Repeater items="{{ round1Matches }}">
+                            <Repeater.itemTemplate>
+                                <GridLayout rows="auto, auto" class="match-card m-y-5">
+                                    <GridLayout rows="auto, auto" row="0" columns="*, auto" class="player" tap="{{ $parents['Page'].onMatchTap }}">
+                                        <Label row="0" col="0" text="{{ player1?.username || 'TBD' }}" class="player-name {{ player1 ? '' : 'tbd' }}" />
+                                        <Label row="0" col="1" text="{{ player1_score || '-' }}" class="score" />
+                                    </GridLayout>
+                                    <GridLayout rows="auto, auto" row="1" columns="*, auto" class="player">
+                                        <Label row="0" col="0" text="{{ player2?.username || 'TBD' }}" class="player-name {{ player2 ? '' : 'tbd' }}" />
+                                        <Label row="0" col="1" text="{{ player2_score || '-' }}" class="score" />
+                                    </GridLayout>
+                                </GridLayout>
+                            </Repeater.itemTemplate>
+                        </Repeater>
+                    </StackLayout>
+
+                    <!-- Round 2 -->
+                    <StackLayout col="1" class="round-column">
+                        <Label text="Semi Finals" class="round-title" />
+                        <Repeater items="{{ round2Matches }}">
+                            <Repeater.itemTemplate>
+                                <GridLayout rows="auto, auto" class="match-card m-y-5">
+                                    <GridLayout rows="auto, auto" row="0" columns="*, auto" class="player" tap="{{ $parents['Page'].onMatchTap }}">
+                                        <Label row="0" col="0" text="{{ player1?.username || 'TBD' }}" class="player-name {{ player1 ? '' : 'tbd' }}" />
+                                        <Label row="0" col="1" text="{{ player1_score || '-' }}" class="score" />
+                                    </GridLayout>
+                                    <GridLayout rows="auto, auto" row="1" columns="*, auto" class="player">
+                                        <Label row="0" col="0" text="{{ player2?.username || 'TBD' }}" class="player-name {{ player2 ? '' : 'tbd' }}" />
+                                        <Label row="0" col="1" text="{{ player2_score || '-' }}" class="score" />
+                                    </GridLayout>
+                                </GridLayout>
+                            </Repeater.itemTemplate>
+                        </Repeater>
+                    </StackLayout>
+
+                    <!-- Final -->
+                    <StackLayout col="2" class="round-column">
+                        <Label text="Final" class="round-title" />
+                        <GridLayout rows="auto, auto" class="match-card m-y-5 final-match">
+                            <GridLayout rows="auto, auto" row="0" columns="*, auto" class="player" tap="{{ onMatchTap }}">
+                                <Label row="0" col="0" text="{{ finalMatch.player1?.username || 'TBD' }}" class="player-name {{ finalMatch.player1 ? '' : 'tbd' }}" />
+                                <Label row="0" col="1" text="{{ finalMatch.player1_score || '-' }}" class="score" />
+                            </GridLayout>
+                            <GridLayout rows="auto, auto" row="1" columns="*, auto" class="player">
+                                <Label row="0" col="0" text="{{ finalMatch.player2?.username || 'TBD' }}" class="player-name {{ finalMatch.player2 ? '' : 'tbd' }}" />
+                                <Label row="0" col="1" text="{{ finalMatch.player2_score || '-' }}" class="score" />
+                            </GridLayout>
+                        </GridLayout>
+                    </StackLayout>
+                </GridLayout>
+            </ScrollView>
+        </ScrollView>
+    </GridLayout>
+</Page>

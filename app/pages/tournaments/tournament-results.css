@@ -1,0 +1,147 @@
+.tournament-header {
+    background-color: white;
+    border-bottom-width: 1;
+    border-color: #eee;
+}
+
+.prize-pool {
+    color: #1976D2;
+    font-size: 16;
+    margin-top: 5;
+}
+
+.winners-podium {
+    height: 200;
+    margin: 20 0;
+}
+
+.podium-spot {
+    background-color: white;
+    border-radius: 8;
+    padding: 10;
+    margin: 0 5;
+    text-align: center;
+}
+
+.first-place {
+    height: 160;
+    background-color: #FFF8E1;
+    border-color: #FFC107;
+    border-width: 2;
+}
+
+.second-place {
+    height: 140;
+    background-color: #F5F5F5;
+    border-color: #9E9E9E;
+    border-width: 2;
+}
+
+.third-place {
+    height: 120;
+    background-color: #FBE9E7;
+    border-color: #FF5722;
+    border-width: 2;
+}
+
+.position {
+    font-size: 20;
+    font-weight: bold;
+    margin-bottom: 5;
+}
+
+.winner-name {
+    font-size: 14;
+    font-weight: bold;
+    margin-bottom: 5;
+}
+
+.prize-amount {
+    color: #1976D2;
+    font-weight: bold;
+}
+
+.standings-list {
+    background-color: #f5f5f5;
+    border-radius: 8;
+    height: 300;
+}
+
+.standing-item {
+    background-color: white;
+    margin: 5 10;
+    border-radius: 4;
+}
+
+.position-number {
+    font-weight: bold;
+    width: 30;
+    text-align: center;
+}
+
+.player-name {
+    margin-left: 10;
+}
+
+.stats-container {
+    background-color: #f5f5f5;
+    border-radius: 8;
+    padding: 15;
+    text-align: center;
+}
+
+.stats-grid {
+    margin-top: 10;
+}
+
+.stat-label {
+    font-size: 14;
+    opacity: 0.7;
+}
+
+.stat-value {
+    font-size: 24;
+    font-weight: bold;
+    text-align: right;
+}
+
+.wins {
+    font-size: 14;
+    opacity: 0.7;
+    margin-right: 10;
+}
+
+.error-state {
+    text-align: center;
+}
+
+.match-list {
+    background-color: #f5f5f5;
+    border-radius: 8;
+    height: 200;
+}
+
+.match-item {
+    background-color: white;
+    margin: 5 10;
+    border-radius: 4;
+}
+
+.match-players {
+    font-weight: bold;
+}
+
+.match-round {
+    font-size: 14;
+    opacity: 0.7;
+}
+
+.match-result {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.match-progress {
+    color: #FFC107;
+    font-weight: bold;
+}

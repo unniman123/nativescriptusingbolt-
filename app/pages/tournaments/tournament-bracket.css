@@ -1,0 +1,87 @@
+.bracket-container {
+    padding: 10;
+}
+
+.round-column {
+    width: 280;
+    margin: 0 20;
+}
+
+.round-title {
+    font-size: 16;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15;
+    color: #666;
+}
+
+.match-card {
+    background-color: white;
+    border-radius: 8;
+    elevation: 2;
+    padding: 10;
+    margin: 5 0;
+}
+
+.player {
+    padding: 8;
+    border-radius: 4;
+}
+
+.player-name {
+    font-size: 14;
+    color: #333;
+}
+
+.player-name.tbd {
+    color: #999;
+    font-style: italic;
+}
+
+.score {
+    font-weight: bold;
+    min-width: 30;
+    text-align: center;
+}
+
+.final-match {
+    background-color: #f8f8f8;
+    border-width: 2;
+    border-color: #2196F3;
+}
+
+.winner {
+    background-color: #E3F2FD;
+}
+
+.tournament-info {
+    background-color: white;
+    border-bottom-width: 1;
+    border-color: #eee;
+}
+
+.tournament-title {
+    font-size: 18;
+    font-weight: bold;
+    margin-bottom: 5;
+}
+
+.status-badge {
+    font-size: 12;
+    padding: 4 8;
+    border-radius: 4;
+    color: white;
+    align-self: flex-start;
+}
+
+.status-open {
+    background-color: #4CAF50;
+}
+
+.status-in_progress {
+    background-color: #2196F3;
+}
+
+.status-completed {
+    background-color: #9E9E9E;
+}

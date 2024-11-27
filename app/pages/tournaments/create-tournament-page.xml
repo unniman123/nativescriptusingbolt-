@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo">
+    <ActionBar title="Create Tournament">
+        <NavigationButton text="Back" android.systemIcon="ic_menu_back" />
+    </ActionBar>
+
+    <ScrollView>
+        <StackLayout padding="20">
+            <!-- Tournament Title -->
+            <Label text="Tournament Title" class="input-label" />
+            <TextField text="{{ title }}" 
+                      hint="Enter tournament title"
+                      class="input" />
+
+            <!-- Game Type -->
+            <Label text="Game Type" class="input-label" />
+            <DropDown items="{{ gameTypes }}"
+                     selectedIndex="{{ selectedGameTypeIndex }}"
+                     class="input" />
+
+            <!-- Entry Fee -->
+            <Label text="Entry Fee (₹)" class="input-label" />
+            <TextField text="{{ entryFee }}"
+                      hint="Enter entry fee"
+                      keyboardType="number"
+                      class="input" />
+
+            <!-- Max Players -->
+            <Label text="Maximum Players" class="input-label" />
+            <TextField text="{{ maxPlayers }}"
+                      hint="Enter max players"
+                      keyboardType="number"
+                      class="input" />
+
+            <!-- Start Time -->
+            <Label text="Start Time" class="input-label" />
+            <DateTimePicker date="{{ startTime }}"
+                           class="input" />
+
+            <!-- Tournament Rules -->
+            <Label text="Tournament Rules" class="input-label" />
+            <TextView text="{{ rules }}"
+                      hint="Enter tournament rules"
+                      height="100"
+                      class="input" />
+
+            <!-- Create Button -->
+            <Button text="Create Tournament"
+                    tap="{{ createTournament }}"
+                    class="btn btn-primary"
+                    isEnabled="{{ !isLoading && isValid }}" />
+
+            <!-- Loading Indicator -->
+            <ActivityIndicator busy="{{ isLoading }}"
+                             visibility="{{ isLoading ? 'visible' : 'collapsed' }}" />
+
+            <!-- Validation Messages -->
+            <Label text="{{ validationMessage }}"
+                   class="validation-message"
+                   visibility="{{ validationMessage ? 'visible' : 'collapsed' }}"
+                   textWrap="true" />
+        </StackLayout>
+    </ScrollView>
+</Page>

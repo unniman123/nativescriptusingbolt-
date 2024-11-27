@@ -1,0 +1,31 @@
+.tournament-rules {
+    background-color: #f8f9fa;
+    padding: 15;
+    margin: 10;
+    border-radius: 8;
+}
+
+.rules-text {
+    font-size: 14;
+    color: #333;
+    line-height: 1.5;
+    padding: 10;
+}
+
+.rules-category {
+    font-weight: bold;
+    color: #007AFF;
+    margin-top: 10;
+    margin-bottom: 5;
+}
+
+.rules-title {
+    font-weight: bold;
+    margin-top: 8;
+    margin-bottom: 4;
+}
+
+.rules-description {
+    margin-bottom: 8;
+    color: #666;
+}

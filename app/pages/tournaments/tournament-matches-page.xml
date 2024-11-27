@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo">
+    <ActionBar title="Tournament Matches">
+        <NavigationButton text="Back" android.systemIcon="ic_menu_back" />
+    </ActionBar>
+
+    <GridLayout rows="auto, *">
+        <!-- Tournament Info Summary -->
+        <StackLayout row="0" class="tournament-summary" padding="10">
+            <Label text="{{ tournament.title }}" class="h3" />
+            <Label text="{{ 'Status: ' + tournament.status }}" class="status-{{ tournament.status }}" />
+        </StackLayout>
+
+        <!-- Matches List -->
+        <GridLayout row="1" rows="auto, *">
+            <!-- Loading Indicator -->
+            <ActivityIndicator row="0" busy="{{ isLoading }}" 
+                             visibility="{{ isLoading ? 'visible' : 'collapsed' }}" />
+
+            <!-- Matches ListView -->
+            <ListView row="1" items="{{ matches }}" itemTap="{{ onMatchTap }}" class="match-list">
+                <ListView.itemTemplate>
+                    <GridLayout columns="*, auto" rows="auto, auto" class="match-item" padding="10">
+                        <Label col="0" row="0" text="{{ 'Match #' + match_number }}" class="match-number" />
+                        <Label col="1" row="0" text="{{ status }}" class="match-status-{{ status }}" />
+                        
+                        <GridLayout col="0" colSpan="2" row="1" rows="auto" columns="*, auto, *">
+                            <Label col="0" text="{{ player1_name }}" class="player-name" />
+                            <Label col="1" text="vs" class="vs-text" />
+                            <Label col="2" text="{{ player2_name }}" class="player-name" />
+                        </GridLayout>
+                    </GridLayout>
+                </ListView.itemTemplate>
+            </ListView>
+
+            <!-- Empty State -->
+            <StackLayout row="1" visibility="{{ !isLoading && (!matches || matches.length === 0) ? 'visible' : 'collapsed' }}"
+                        horizontalAlignment="center" verticalAlignment="center">
+                <Label text="No matches available" class="empty-message" />
+                <Label text="Matches will be generated when the tournament begins" class="empty-submessage" textWrap="true" />
+            </StackLayout>
+        </GridLayout>
+    </GridLayout>
+</Page>

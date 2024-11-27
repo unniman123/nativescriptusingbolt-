@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo">
+    <ActionBar title="Tournament Results">
+        <NavigationButton text="Back" android.systemIcon="ic_menu_back" />
+    </ActionBar>
+
+    <GridLayout>
+        <!-- Loading State -->
+        <ActivityIndicator busy="{{ isLoading }}" 
+                         visibility="{{ isLoading ? 'visible' : 'collapsed' }}" />
+
+        <!-- Error State -->
+        <StackLayout visibility="{{ error ? 'visible' : 'collapsed' }}" class="error-state p-15">
+            <Label text="Failed to load results" class="h3" />
+            <Label text="{{ errorMessage }}" class="body" textWrap="true" />
+            <Button text="Retry" tap="{{ loadResults }}" class="btn btn-primary m-t-10" />
+        </StackLayout>
+
+        <!-- Content -->
+        <ScrollView visibility="{{ !isLoading && !error ? 'visible' : 'collapsed' }}">
+            <StackLayout class="p-15">
+                <!-- Tournament Header -->
+                <Label text="{{ tournament.title }}" class="h2 font-weight-bold" textWrap="true" />
+                <Label text="{{ 'Prize Pool: ₹' + tournament.prize_pool }}" class="prize-pool" />
+                
+                <!-- Tournament Stats -->
+                <GridLayout columns="*, *" rows="auto" class="stats-container m-t-15">
+                    <StackLayout col="0">
+                        <Label text="{{ stats.totalMatches }}" class="stat-value" />
+                        <Label text="Matches" class="stat-label" />
+                    </StackLayout>
+                    <StackLayout col="1">
+                        <Label text="{{ stats.totalPlayers }}" class="stat-value" />
+                        <Label text="Players" class="stat-label" />
+                    </StackLayout>
+                </GridLayout>
+
+                <!-- Final Standings -->
+                <Label text="Final Standings" class="h3 m-t-20" />
+                <ListView items="{{ results }}" class="standings-list m-t-10">
+                    <ListView.itemTemplate>
+                        <GridLayout columns="auto, *, auto, auto" class="standing-item p-10">
+                            <Label col="0" text="{{ position }}" class="position-number" />
+                            <Label col="1" text="{{ username }}" class="player-name" />
+                            <Label col="2" text="{{ wins + ' wins' }}" class="wins" />
+                            <Label col="3" text="{{ prize > 0 ? '₹' + prize : '' }}" class="prize-amount" />
+                        </GridLayout>
+                    </ListView.itemTemplate>
+                </ListView>
+            </StackLayout>
+        </ScrollView>
+    </GridLayout>
+</Page>

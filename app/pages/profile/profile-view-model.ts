@@ -1,39 +1,18 @@
-import { Observable } from '@nativescript/core';
-import { ProfileService } from '../../services/profile-service';
-import { MatchService } from '../../services/match-service';
-import type { Profile, Match } from '../../services/supabase';
-
-interface MatchHistoryItem {
-    opponent: string;
-    tournament: string;
-    result: 'Won' | 'Lost';
-    created_at: string;
-}
+import { Observable, Frame } from '@nativescript/core';
+import { authService } from '../../services/auth-service';
+import { supabase } from '../../services/supabase';
 
 export class ProfileViewModel extends Observable {
-    private _profile: Profile | null = null;
     private _username: string = '';
     private _gameId: string = '';
-    private _matchHistory: MatchHistoryItem[] = [];
+    private _email: string = '';
+    private _isEmailVerified: boolean = false;
+    private _isLoading: boolean = false;
+    private _errorMessage: string = '';
 
     constructor() {
         super();
         this.loadProfile();
-    }
-
-    get profile(): Profile | null {
-        return this._profile;
-    }
-
-    set profile(value: Profile | null) {
-        if (this._profile !== value) {
-            this._profile = value;
-            if (value) {
-                this.username = value.username;
-                this.gameId = value.game_id || '';
-            }
-            this.notifyPropertyChange('profile', value);
-        }
     }
 
     get username(): string {
@@ -58,89 +37,123 @@ export class ProfileViewModel extends Observable {
         }
     }
 
-    get matchHistory(): MatchHistoryItem[] {
-        return this._matchHistory;
+    get email(): string {
+        return this._email;
     }
 
-    set matchHistory(value: MatchHistoryItem[]) {
-        if (this._matchHistory !== value) {
-            this._matchHistory = value;
-            this.notifyPropertyChange('matchHistory', value);
+    set email(value: string) {
+        if (this._email !== value) {
+            this._email = value;
+            this.notifyPropertyChange('email', value);
+        }
+    }
+
+    get isEmailVerified(): boolean {
+        return this._isEmailVerified;
+    }
+
+    set isEmailVerified(value: boolean) {
+        if (this._isEmailVerified !== value) {
+            this._isEmailVerified = value;
+            this.notifyPropertyChange('isEmailVerified', value);
+        }
+    }
+
+    get isLoading(): boolean {
+        return this._isLoading;
+    }
+
+    set isLoading(value: boolean) {
+        if (this._isLoading !== value) {
+            this._isLoading = value;
+            this.notifyPropertyChange('isLoading', value);
+        }
+    }
+
+    get errorMessage(): string {
+        return this._errorMessage;
+    }
+
+    set errorMessage(value: string) {
+        if (this._errorMessage !== value) {
+            this._errorMessage = value;
+            this.notifyPropertyChange('errorMessage', value);
         }
     }
 
     async loadProfile() {
         try {
-            const userId = 'current-user-id'; // Replace with actual user ID
-            this.profile = await ProfileService.getProfile(userId);
-            await this.loadMatchHistory();
+            this.isLoading = true;
+            this.errorMessage = '';
+
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError) throw userError;
+
+            if (user) {
+                this.email = user.email || '';
+                this.isEmailVerified = !!user.email_confirmed_at;
+
+                const { data: profile, error: profileError } = await supabase
+                    .from('users')
+                    .select('username, game_id')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profileError) throw profileError;
+
+                if (profile) {
+                    this.username = profile.username || '';
+                    this.gameId = profile.game_id || '';
+                }
+            }
         } catch (error) {
             console.error('Failed to load profile:', error);
-            alert({
-                title: 'Error',
-                message: 'Failed to load profile. Please try again.',
-                okButtonText: 'OK'
-            });
+            this.errorMessage = error.message;
+        } finally {
+            this.isLoading = false;
         }
-    }
-
-    async loadMatchHistory() {
-        try {
-            const userId = 'current-user-id'; // Replace with actual user ID
-            const matches = await MatchService.getUserMatches(userId);
-            this.matchHistory = await this.processMatchHistory(matches);
-        } catch (error) {
-            console.error('Failed to load match history:', error);
-            alert({
-                title: 'Error',
-                message: 'Failed to load match history. Please try again.',
-                okButtonText: 'OK'
-            });
-        }
-    }
-
-    private async processMatchHistory(matches: Match[]): Promise<MatchHistoryItem[]> {
-        const userId = 'current-user-id'; // Replace with actual user ID
-        const historyItems: MatchHistoryItem[] = [];
-
-        for (const match of matches) {
-            const opponentId = match.player1_id === userId ? match.player2_id : match.player1_id;
-            const opponent = await ProfileService.getProfile(opponentId);
-            
-            historyItems.push({
-                opponent: opponent?.username || 'Unknown Player',
-                tournament: 'Tournament', // You might want to load tournament details here
-                result: match.winner_id === userId ? 'Won' : 'Lost',
-                created_at: match.created_at
-            });
-        }
-
-        return historyItems;
     }
 
     async updateProfile() {
-        if (!this._profile) return;
-
         try {
-            const updates = {
-                username: this.username,
-                game_id: this.gameId
-            };
+            this.isLoading = true;
+            this.errorMessage = '';
 
-            await ProfileService.updateProfile(this._profile.id, updates);
-            
-            alert({
-                title: 'Success',
-                message: 'Profile updated successfully!',
-                okButtonText: 'OK'
-            });
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError) throw userError;
+
+            if (!user) {
+                throw new Error('No user found');
+            }
+
+            const { error: updateError } = await supabase
+                .from('users')
+                .update({
+                    username: this._username,
+                    game_id: this._gameId
+                })
+                .eq('id', user.id);
+
+            if (updateError) throw updateError;
+
         } catch (error) {
             console.error('Failed to update profile:', error);
-            alert({
-                title: 'Error',
-                message: error.message || 'Failed to update profile. Please try again.',
-                okButtonText: 'OK'
+            this.errorMessage = error.message;
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    async signOut() {
+        try {
+            await authService.signOut();
+            Frame.topmost().navigate({
+                moduleName: 'app/pages/auth/login-page',
+                clearHistory: true
             });
+        } catch (error) {
+            console.error('Sign out error:', error);
+            this.errorMessage = error.message;
         }
     }
 }

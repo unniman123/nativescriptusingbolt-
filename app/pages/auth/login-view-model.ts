@@ -169,6 +169,12 @@ export class LoginViewModel extends Observable {
         }
     }
 
+    async onForgotPassword() {
+        Frame.topmost().navigate({
+            moduleName: 'app/pages/auth/reset-password-page'
+        });
+    }
+
     private validateForm(): boolean {
         this.validateEmail();
         this.validatePassword();

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo">
+    <ActionBar title="Match Details">
+        <NavigationButton text="Back" android.systemIcon="ic_menu_back" />
+    </ActionBar>
+
+    <ScrollView>
+        <StackLayout padding="15">
+            <!-- Tournament Info -->
+            <Label text="{{ match.tournament.title }}" class="tournament-title" />
+            <Label text="Status: {{ match.status }}" class="match-status" marginTop="5" />
+
+            <!-- Match Details -->
+            <GridLayout rows="auto" columns="*, auto, *" class="match-details" marginTop="15">
+                <StackLayout col="0">
+                    <Label text="{{ match.player1.username }}" class="player-name" />
+                    <Label text="{{ match.player1_score }}" class="score"
+                           visibility="{{ match.status === 'completed' ? 'visible' : 'collapsed' }}" />
+                </StackLayout>
+                <Label col="1" text="vs" class="vs-text" />
+                <StackLayout col="2">
+                    <Label text="{{ match.player2.username }}" class="player-name" />
+                    <Label text="{{ match.player2_score }}" class="score"
+                           visibility="{{ match.status === 'completed' ? 'visible' : 'collapsed' }}" />
+                </StackLayout>
+            </GridLayout>
+
+            <!-- Dispute Information -->
+            <StackLayout visibility="{{ match.status === 'disputed' ? 'visible' : 'collapsed' }}"
+                        class="dispute-section" marginTop="20">
+                <Label text="Dispute Information" class="section-header" />
+                <Label text="Disputed by: {{ match.disputed_by_username }}" class="dispute-by" />
+                <Label text="{{ match.dispute_reason }}" class="dispute-reason" textWrap="true" />
+                <Label text="Disputed at: {{ match.disputed_at | dateFormat }}" class="dispute-time" />
+            </StackLayout>
+
+            <!-- Admin Actions -->
+            <StackLayout class="admin-actions" marginTop="20">
+                <Label text="Admin Actions" class="section-header" />
+
+                <!-- Dispute Resolution -->
+                <StackLayout visibility="{{ match.status === 'disputed' ? 'visible' : 'collapsed' }}">
+                    <Label text="Resolve Dispute" class="subsection-header" marginTop="10" />
+                    
+                    <!-- Winner Selection -->
+                    <Label text="Select Winner:" marginTop="10" />
+                    <GridLayout columns="*, *" marginTop="5">
+                        <Button col="0" text="{{ match.player1.username }}"
+                                tap="{{ selectWinner }}" data-player-id="{{ match.player1_id }}"
+                                class="{{ selectedWinnerId === match.player1_id ? 'selected-winner' : '' }}" />
+                        <Button col="1" text="{{ match.player2.username }}"
+                                tap="{{ selectWinner }}" data-player-id="{{ match.player2_id }}"
+                                class="{{ selectedWinnerId === match.player2_id ? 'selected-winner' : '' }}" />
+                    </GridLayout>
+
+                    <!-- Resolution Notes -->
+                    <Label text="Resolution Notes:" marginTop="10" />
+                    <TextView hint="Enter resolution notes..." text="{{ resolutionNotes }}"
+                             height="100" class="input-field" />
+
+                    <!-- Resolution Actions -->
+                    <GridLayout columns="*, *" marginTop="10">
+                        <Button col="0" text="Uphold Dispute" tap="{{ resolveDispute }}"
+                                data-resolution="upheld" class="action-button-warning" />
+                        <Button col="1" text="Reject Dispute" tap="{{ resolveDispute }}"
+                                data-resolution="rejected" class="action-button-primary" />
+                    </GridLayout>
+                </StackLayout>
+
+                <!-- Match Override -->
+                <StackLayout marginTop="20">
+                    <Label text="Match Override" class="subsection-header" />
+                    <TextView hint="Enter override reason..." text="{{ overrideReason }}"
+                             height="100" class="input-field" marginTop="10" />
+                    <Button text="Override Match Result" tap="{{ overrideMatch }}"
+                            class="action-button-danger" marginTop="10" />
+                </StackLayout>
+            </StackLayout>
+        </StackLayout>
+    </ScrollView>
+</Page>

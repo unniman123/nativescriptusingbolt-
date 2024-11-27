@@ -1,0 +1,20 @@
+.match-timer {
+    background-color: #007AFF;
+    padding: 15;
+    margin: 10;
+    border-radius: 8;
+    text-align: center;
+}
+
+.timer-label {
+    color: #ffffff;
+    font-size: 14;
+    margin-bottom: 5;
+}
+
+.timer-value {
+    color: #ffffff;
+    font-size: 24;
+    font-weight: bold;
+    font-family: monospace;
+}

@@ -17,20 +17,26 @@
         <PullToRefresh row="1" refresh="{{ onPullToRefresh }}">
             <ListView items="{{ tournaments }}" itemTap="{{ onTournamentTap }}" class="tournament-list">
                 <ListView.itemTemplate>
-                    <GridLayout columns="*, auto" rows="auto, auto" class="tournament-item" padding="10">
-                        <Label col="0" row="0" text="{{ title }}" class="tournament-title" />
-                        <Label col="1" row="0" text="{{ 'Entry: ₹' + entry_fee }}" class="tournament-fee" />
+                    <GridLayout columns="*, auto" rows="auto, auto, auto" class="tournament-item p-10 m-5">
+                        <!-- Tournament Header -->
+                        <StackLayout col="0" row="0" orientation="horizontal">
+                            <Label text="{{ title }}" class="tournament-title font-weight-bold" />
+                            <Label text="{{ status }}" class="status-badge status-{{ status }} m-l-5" />
+                        </StackLayout>
+                        <Label col="1" row="0" text="{{ 'Prize: ₹' + prize_pool }}" class="prize-pool text-right text-primary" />
                         
-                        <GridLayout col="0" row="1" columns="auto, auto, *" class="tournament-info">
+                        <!-- Tournament Info -->
+                        <GridLayout col="0" colSpan="2" row="1" columns="auto, auto, *" class="tournament-info m-t-5">
                             <Label col="0" text="{{ game_type }}" class="game-type" />
-                            <Label col="1" text="{{ current_participants + '/' + max_participants }}" class="participants" />
-                            <Label col="2" text="{{ start_time | timeFromNow }}" class="start-time" horizontalAlignment="right" />
+                            <Label col="1" text="{{ '|' }}" class="separator m-x-5" />
+                            <Label col="2" text="{{ current_participants + '/' + max_participants + ' Players' }}" class="participants" />
                         </GridLayout>
                         
-                        <StackLayout col="1" row="1" orientation="horizontal">
-                            <Label text="{{ 'Prize: ₹' + prize_pool }}" class="prize-pool" />
-                            <Label text="{{ status }}" class="status-{{ status }}" />
-                        </StackLayout>
+                        <!-- Tournament Footer -->
+                        <GridLayout col="0" colSpan="2" row="2" columns="auto, *" class="tournament-footer m-t-5">
+                            <Label col="0" text="{{ 'Entry: ₹' + entry_fee }}" class="entry-fee" />
+                            <Label col="1" text="{{ start_time | timeFromNow }}" class="start-time text-right" />
+                        </GridLayout>
                     </GridLayout>
                 </ListView.itemTemplate>
             </ListView>

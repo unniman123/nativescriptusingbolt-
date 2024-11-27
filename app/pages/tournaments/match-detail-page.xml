@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo" unloaded="{{ onUnloaded }}">
+    <ActionBar title="Match Details">
+        <NavigationButton text="Back" android.systemIcon="ic_menu_back" />
+    </ActionBar>
+
+    <ScrollView>
+        <StackLayout padding="20">
+            <!-- Match Header -->
+            <Label text="{{ 'Match #' + match.match_number }}" class="h2" marginBottom="10" />
+            
+            <!-- Match Status -->
+            <Label text="{{ 'Status: ' + match.status }}" class="match-status-{{ match.status }}" marginBottom="20" />
+
+            <!-- Players Section -->
+            <GridLayout rows="auto, auto" columns="*, auto, *" class="players-container" marginBottom="20">
+                <!-- Player 1 -->
+                <StackLayout row="0" col="0" class="player-info">
+                    <Label text="Player 1" class="player-label" />
+                    <Label text="{{ match.player1.username }}" class="player-name" />
+                    <Label text="{{ match.player1.game_id }}" class="game-id" />
+                </StackLayout>
+
+                <!-- VS -->
+                <Label row="0" col="1" text="VS" class="vs-text" />
+
+                <!-- Player 2 -->
+                <StackLayout row="0" col="2" class="player-info">
+                    <Label text="Player 2" class="player-label" />
+                    <Label text="{{ match.player2.username }}" class="player-name" />
+                    <Label text="{{ match.player2.game_id }}" class="game-id" />
+                </StackLayout>
+
+                <!-- Score Input -->
+                <GridLayout row="1" colSpan="3" rows="auto, auto" 
+                          visibility="{{ canSubmitResult ? 'visible' : 'collapsed' }}"
+                          marginTop="20">
+                    <Label row="0" text="Enter Scores" class="section-header" />
+                    <GridLayout row="1" columns="*, auto, *" class="score-input">
+                        <TextField col="0" 
+                                 text="{{ player1Score }}" 
+                                 keyboardType="number" 
+                                 hint="Player 1 Score"
+                                 class="score-input" />
+                        <Label col="1" text="-" class="score-separator" />
+                        <TextField col="2" 
+                                 text="{{ player2Score }}" 
+                                 keyboardType="number" 
+                                 hint="Player 2 Score"
+                                 class="score-input" />
+                    </GridLayout>
+                </GridLayout>
+            </GridLayout>
+
+            <!-- Submit Result Button -->
+            <Button text="Submit Result" 
+                    tap="{{ submitResult }}" 
+                    class="btn btn-primary" 
+                    isEnabled="{{ canSubmitResult }}"
+                    visibility="{{ canSubmitResult ? 'visible' : 'collapsed' }}" />
+
+            <!-- Dispute Button -->
+            <Button text="Report Issue" 
+                    tap="{{ showDisputeDialog }}" 
+                    class="btn btn-secondary" 
+                    visibility="{{ match.status !== 'disputed' ? 'visible' : 'collapsed' }}"
+                    marginTop="10" />
+
+            <!-- Loading Indicator -->
+            <ActivityIndicator busy="{{ isLoading }}" 
+                             visibility="{{ isLoading ? 'visible' : 'collapsed' }}" />
+
+            <!-- Match Rules -->
+            <StackLayout class="rules-container" marginTop="20">
+                <Label text="Match Rules" class="section-header" />
+                <Label text="1. Both players must be present" textWrap="true" />
+                <Label text="2. Screenshot of results required" textWrap="true" />
+                <Label text="3. Report any issues immediately" textWrap="true" />
+                <Label text="4. Scores must be entered accurately" textWrap="true" />
+            </StackLayout>
+
+            <!-- Dispute Dialog -->
+            <GridLayout class="dispute-dialog" 
+                       visibility="{{ isDisputeDialogVisible ? 'visible' : 'collapsed' }}"
+                       rows="auto, auto, auto" columns="*">
+                <Label row="0" text="Report Match Issue" class="dialog-header" />
+                <TextView row="1" 
+                         text="{{ disputeReason }}" 
+                         hint="Describe the issue..."
+                         class="dispute-reason" />
+                <GridLayout row="2" columns="*, *" class="dialog-buttons">
+                    <Button col="0" text="Cancel" tap="{{ hideDisputeDialog }}" class="btn btn-secondary" />
+                    <Button col="1" text="Submit" tap="{{ disputeMatch }}" class="btn btn-primary" />
+                </GridLayout>
+            </GridLayout>
+        </StackLayout>
+    </ScrollView>
+</Page>

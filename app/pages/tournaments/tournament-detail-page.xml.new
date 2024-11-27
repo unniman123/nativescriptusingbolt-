@@ -35,15 +35,25 @@
                 </GridLayout>
             </StackLayout>
 
+            <!-- Tournament Rules -->
+            <Button text="View Rules" tap="{{ toggleRules }}" class="btn btn-outline m-t-10" visibility="{{ !showRules ? 'visible' : 'collapse' }}"/>
+            <StackLayout class="tournament-rules" visibility="{{ showRules ? 'visible' : 'collapse' }}">
+                <Label text="Tournament Rules" class="h2 m-b-10"/>
+                <ScrollView height="200">
+                    <Label text="{{ formattedRules }}" textWrap="true" class="rules-text"/>
+                </ScrollView>
+                <Button text="Close Rules" tap="{{ toggleRules }}" class="btn btn-secondary m-t-10"/>
+            </StackLayout>
+
             <!-- Participants List -->
             <StackLayout class="participants-container m-y-15" visibility="{{ tournament.participants.length > 0 ? 'visible' : 'collapsed' }}">
-                <Label text="Participants" class="font-weight-bold m-b-10" />
+                <Label text="Participants" class="font-weight-bold" />
                 <ListView items="{{ tournament.participants }}" height="{{ tournament.participants.length * 50 }}" class="participant-list">
                     <ListView.itemTemplate>
-                        <GridLayout columns="auto, *, auto" class="participant-item p-10">
-                            <Label col="0" text="{{ user.username }}" class="participant-name" />
-                            <Label col="1" text="{{ user.game_id }}" class="participant-game-id text-muted" />
-                            <Label col="2" text="{{ index + 1 }}" class="participant-number" />
+                        <GridLayout columns="auto, *, auto" class="participant-item p-y-10">
+                            <Image col="0" src="{{ profile_image || '~/assets/default-avatar.png' }}" class="participant-avatar" />
+                            <Label col="1" text="{{ username }}" class="participant-name" />
+                            <Label col="2" text="{{ rating }}" class="participant-rating" />
                         </GridLayout>
                     </ListView.itemTemplate>
                 </ListView>
