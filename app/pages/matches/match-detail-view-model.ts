@@ -68,9 +68,10 @@ export class MatchDetailViewModel extends Observable {
         });
 
         // Subscribe to score dispute events
-        this._disputeSubscription = scoreVerification.on('scoreDispute', (data: ScoreDisputeEvent) => {
-            if (data.matchId === this.matchId) {
-                this.handleScoreDispute(data.submissions);
+        this._disputeSubscription = scoreVerification.on('scoreDispute', (data: EventData) => {
+            const scoreDisputeEvent = data as unknown as ScoreDisputeEvent;
+            if (scoreDisputeEvent.matchId === this.matchId) {
+                this.handleScoreDispute(scoreDisputeEvent.submissions);
             }
         });
     }
@@ -212,8 +213,8 @@ export class MatchDetailViewModel extends Observable {
             this.player2 = await ProfileService.getProfile(match.player2_id);
 
             // Set initial scores if available
-            if (match.player1_score !== null) this.player1Score = match.player1_score;
-            if (match.player2_score !== null) this.player2Score = match.player2_score;
+            this.player1Score = match.player1_score ?? 0;
+            this.player2Score = match.player2_score ?? 0;
 
         } catch (error) {
             errorHandler.handleError(error, 'Loading Match Details');
@@ -286,45 +287,55 @@ export class MatchDetailViewModel extends Observable {
         }
     }
 
-    private handleScoreDispute(submissions: ScoreSubmission[]): void {
-        alert({
-            title: 'Score Mismatch',
-            message: 'The submitted scores do not match. The match will be marked as disputed.',
-            okButtonText: 'OK'
-        });
-
-        this.disputeMatch();
+    async handleScoreDispute(submissions: ScoreSubmission[]) {
+        try {
+            const disputedMatch = await this.disputeMatch();
+            // Additional handling after successful dispute
+            if (disputedMatch.status === 'disputed') {
+                console.log('Match successfully disputed');
+            }
+        } catch (error) {
+            console.error('Error handling score dispute:', error);
+        }
     }
 
-    async disputeMatch() {
-        if (!this._match) return;
+    async disputeMatch(): Promise<Match> {
+        if (!this._match) {
+            throw new Error('No match selected');
+        }
 
         try {
-            const userId = await ProfileService.getCurrentUserId();
-            if (!userId) {
+            const currentUserId = authService.currentUser()?.id;
+            if (!currentUserId) {
                 throw new Error('User not authenticated');
             }
 
-            const supabase = getSupabase();
-            await MatchService.disputeMatch(
+            const result = await MatchService.disputeMatch(
                 this._match.id,
-                userId,
+                currentUserId,
                 'Score dispute initiated by player'
             );
             
+            // Update the local match data with the disputed status
+            this._match = result;
+            this.notifyPropertyChange('match', result);
+            
+            // Show success message
             alert({
-                title: 'Match Disputed',
-                message: 'The match has been marked as disputed. An admin will review the case.',
-                okButtonText: 'OK'
+                title: "Dispute Submitted",
+                message: "Your match dispute has been recorded and will be reviewed.",
+                okButtonText: "OK"
             });
-            await this.loadMatchDetails(); // Refresh the data
+
+            return result;
         } catch (error) {
-            console.error('Failed to dispute match:', error);
+            console.error('Error disputing match:', error);
             alert({
-                title: 'Error',
-                message: error.message || 'Failed to dispute match. Please try again.',
-                okButtonText: 'OK'
+                title: "Error",
+                message: error instanceof Error ? error.message : "Failed to submit match dispute",
+                okButtonText: "OK"
             });
+            throw error; // Re-throw to allow caller to handle if needed
         }
     }
 
