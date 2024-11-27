@@ -1,7 +1,7 @@
 import { Observable, EventData } from '@nativescript/core';
 import { Match } from '../../services/supabase';
 import { MatchService } from '../../services/match-service';
-import { AuthService } from '../../services/auth-service';
+import { authService } from '../../services/auth-service';
 
 export class AdminMatchDetailViewModel extends Observable {
     private _match: Match;
@@ -13,7 +13,7 @@ export class AdminMatchDetailViewModel extends Observable {
     constructor(match: Match) {
         super();
         this._match = match;
-        this._adminId = AuthService.getCurrentUser()?.id;
+        this._adminId = authService.currentUser?.id;
         if (!this.validateAdmin()) {
             alert({
                 title: 'Access Denied',
@@ -25,7 +25,7 @@ export class AdminMatchDetailViewModel extends Observable {
     }
 
     private validateAdmin(): boolean {
-        const user = AuthService.getCurrentUser();
+        const user = authService.currentUser;
         return user?.role === 'admin';
     }
 
