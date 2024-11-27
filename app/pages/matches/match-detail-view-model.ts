@@ -1,12 +1,12 @@
-import { Observable, alert } from '@nativescript/core';
-import { Match, Tournament, Profile } from '../../services/supabase';
+import { Observable, alert, EventData } from '@nativescript/core';
+import { Match, Tournament, Profile, getSupabase } from '../../services/supabase';
 import { MatchService } from '../../services/match-service';
 import { ProfileService } from '../../services/profile-service';
 import { TournamentService } from '../../services/tournament-service';
 import { matchTimer } from '../../services/match-timer.service';
 import { errorHandler } from '../../services/error-handling.service';
 import { scoreVerification, ScoreSubmission } from '../../services/score-verification.service';
-import { AuthService } from '../../services/auth-service';
+import { authService } from '../../services/auth-service';
 
 interface TimerEvent {
     propertyName: string;
@@ -44,20 +44,25 @@ export class MatchDetailViewModel extends Observable {
 
     private setupEventListeners(): void {
         // Subscribe to timer updates
-        this._timerSubscription = matchTimer.on('propertyChange', (data: TimerEvent) => {
-            if (data.propertyName === `timer_${this.matchId}`) {
-                try {
-                    this._remainingTime = matchTimer.getRemainingTimeFormatted(this.matchId);
-                    this.notifyPropertyChange('remainingTime', this._remainingTime);
-                } catch (error) {
-                    errorHandler.handleError(error, 'Timer Update');
+        this._timerSubscription = matchTimer.on('propertyChange', (data: EventData) => {
+            // Type guard to ensure data has the required properties
+            if ('propertyName' in data && 'value' in data) {
+                const timerEvent = data as TimerEvent;
+                if (timerEvent.propertyName === `timer_${this.matchId}`) {
+                    try {
+                        this._remainingTime = matchTimer.getRemainingTimeFormatted(this.matchId);
+                        this.notifyPropertyChange('remainingTime', this._remainingTime);
+                    } catch (error) {
+                        errorHandler.handleError(error, 'Timer Update');
+                    }
                 }
             }
         });
 
         // Subscribe to match time up event
-        this._timeUpSubscription = matchTimer.on('matchTimeUp', (data: MatchTimeUpEvent) => {
-            if (data.matchId === this.matchId) {
+        this._timeUpSubscription = matchTimer.on('matchTimeUp', (data: EventData) => {
+            const matchTimeUpEvent = data as unknown as MatchTimeUpEvent;
+            if (matchTimeUpEvent.matchId === this.matchId) {
                 this.handleMatchTimeUp();
             }
         });
@@ -167,7 +172,7 @@ export class MatchDetailViewModel extends Observable {
     private updateActionStates() {
         if (!this._match) return;
 
-        const currentUserId = AuthService.getCurrentUser()?.id;
+        const currentUserId = authService.currentUser()?.id;
         if (!currentUserId) {
             errorHandler.handleError(new Error('User not authenticated'), 'Update Action States');
             return;
@@ -227,7 +232,7 @@ export class MatchDetailViewModel extends Observable {
         if (!this._match) return;
 
         try {
-            const currentUserId = AuthService.getCurrentUser()?.id;
+            const currentUserId = authService.currentUser()?.id;
             if (!currentUserId) {
                 throw new Error('User not authenticated');
             }
@@ -256,7 +261,8 @@ export class MatchDetailViewModel extends Observable {
                         this._match.id,
                         this.player1Score,
                         this.player2Score,
-                        winnerId
+                        winnerId,
+                        currentUserId
                     );
 
                     alert({
@@ -294,7 +300,18 @@ export class MatchDetailViewModel extends Observable {
         if (!this._match) return;
 
         try {
-            await MatchService.disputeMatch(this._match.id);
+            const userId = await ProfileService.getCurrentUserId();
+            if (!userId) {
+                throw new Error('User not authenticated');
+            }
+
+            const supabase = getSupabase();
+            await MatchService.disputeMatch(
+                this._match.id,
+                userId,
+                'Score dispute initiated by player'
+            );
+            
             alert({
                 title: 'Match Disputed',
                 message: 'The match has been marked as disputed. An admin will review the case.',
