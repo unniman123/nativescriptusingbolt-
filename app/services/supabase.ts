@@ -19,17 +19,27 @@ const options = {
 export function initializeSupabase() {
   try {
     const supabase = createClient(supabaseUrl, supabaseKey, options);
-    console.log('Supabase initialized successfully');
     return supabase;
   } catch (error) {
-    console.error('Failed to initialize Supabase:', error);
+    console.error('Supabase initialization error:', error);
     alert({
-      title: "Connection Error",
-      message: "Failed to connect to Supabase. Please check your connection.",
-      okButtonText: "OK"
+      title: 'Initialization Error',
+      message: 'Failed to initialize Supabase client',
+      okButtonText: 'OK'
     });
-    return null;
+    throw error;
   }
+}
+
+// Initialize Supabase client
+export const supabase = initializeSupabase();
+
+// Add a null check function
+export function getSupabase() {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized');
+  }
+  return supabase;
 }
 
 // Database types
@@ -53,6 +63,7 @@ export type Tournament = {
   status: 'open' | 'in_progress' | 'completed';
   start_time: string;
   created_at: string;
+  rules?: string;
 };
 
 export type Match = {
@@ -66,6 +77,11 @@ export type Match = {
   status: 'scheduled' | 'in_progress' | 'completed' | 'disputed';
   scheduled_time: string;
   created_at: string;
+  round?: number;
+  match_number?: number;
+  duration?: number;
+  player1?: { username: string, game_id?: string };
+  player2?: { username: string, game_id?: string };
 };
 
 export type Transaction = {
@@ -77,6 +93,3 @@ export type Transaction = {
   reference_id?: string;
   created_at: string;
 };
-
-// Initialize Supabase client
-export const supabase = initializeSupabase();
