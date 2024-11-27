@@ -132,7 +132,7 @@ export class LoginViewModel extends Observable {
             if (error) throw error;
 
             if (user) {
-                const isVerified = await authService.checkEmailVerification();
+                const isVerified = await authService.checkEmailVerificationStatus();
                 if (!isVerified) {
                     this.showVerificationPrompt = true;
                     this.errorMessage = 'Please verify your email before logging in.';

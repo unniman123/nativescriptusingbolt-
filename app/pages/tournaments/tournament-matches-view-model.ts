@@ -1,4 +1,4 @@
-import { Observable, EventData, alert } from '@nativescript/core';
+import { Observable, EventData, alert, ItemEventData } from '@nativescript/core';
 import { Tournament, Match } from '../../services/supabase';
 import { TournamentService } from '../../services/tournament-service';
 
@@ -51,7 +51,7 @@ export class TournamentMatchesViewModel extends Observable {
         }
     }
 
-    async onMatchTap(args: EventData) {
+    async onMatchTap(args: ItemEventData) {
         const match = this._matches[args.index];
         // Navigate to match detail page
         // TODO: Implement match detail navigation

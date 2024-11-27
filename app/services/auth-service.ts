@@ -87,6 +87,10 @@ class AuthService extends Observable {
         }
     }
 
+    public async checkEmailVerificationStatus(): Promise<boolean> {
+        return this.checkEmailVerification();
+    }
+
     private async checkEmailVerification(): Promise<boolean> {
         if (!this._currentUser) {
             console.log('[Auth] No current user found for email verification check');
@@ -98,7 +102,7 @@ class AuthService extends Observable {
             const { data: { user }, error } = await supabase.auth.getUser();
             if (error) throw error;
 
-            this._isEmailVerified = !!user?.email_confirmed_at;
+            this._isEmailVerified = user?.email_confirmed_at !== null;
             console.log('[Auth] Email verification status:', this._isEmailVerified);
             console.log('[Auth] Email confirmed at:', user?.email_confirmed_at);
             

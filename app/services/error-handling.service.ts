@@ -152,7 +152,7 @@ export class ErrorHandlingService extends Observable {
         }
 
         alert(alertOptions).then((result) => {
-            if (result === false && error.retryable) {
+            if (!result && error.retryable) {
                 // User clicked Retry
                 this.notify({
                     eventName: 'retry',
