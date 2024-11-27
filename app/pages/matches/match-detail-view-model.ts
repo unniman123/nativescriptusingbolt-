@@ -1,5 +1,5 @@
-import { Observable } from '@nativescript/core';
-import { Match } from '../../services/supabase';
+import { Observable, alert } from '@nativescript/core';
+import { Match, Tournament, Profile } from '../../services/supabase';
 import { MatchService } from '../../services/match-service';
 import { ProfileService } from '../../services/profile-service';
 import { TournamentService } from '../../services/tournament-service';
@@ -7,6 +7,20 @@ import { matchTimer } from '../../services/match-timer.service';
 import { errorHandler } from '../../services/error-handling.service';
 import { scoreVerification, ScoreSubmission } from '../../services/score-verification.service';
 import { AuthService } from '../../services/auth-service';
+
+interface TimerEvent {
+    propertyName: string;
+    value: string;
+}
+
+interface MatchTimeUpEvent {
+    matchId: string;
+}
+
+interface ScoreDisputeEvent {
+    matchId: string;
+    submissions: ScoreSubmission[];
+}
 
 export class MatchDetailViewModel extends Observable {
     private _match: Match | null = null;
@@ -18,28 +32,38 @@ export class MatchDetailViewModel extends Observable {
     private _canSubmitScore: boolean = false;
     private _canDispute: boolean = false;
     private _remainingTime: string = '00:00';
+    private _timerSubscription: any;
+    private _timeUpSubscription: any;
+    private _disputeSubscription: any;
 
     constructor(private matchId: string) {
         super();
         this.loadMatchDetails();
+        this.setupEventListeners();
+    }
 
+    private setupEventListeners(): void {
         // Subscribe to timer updates
-        matchTimer.on('propertyChange', (data: any) => {
+        this._timerSubscription = matchTimer.on('propertyChange', (data: TimerEvent) => {
             if (data.propertyName === `timer_${this.matchId}`) {
-                this._remainingTime = matchTimer.getRemainingTimeFormatted(this.matchId);
-                this.notifyPropertyChange('remainingTime', this._remainingTime);
+                try {
+                    this._remainingTime = matchTimer.getRemainingTimeFormatted(this.matchId);
+                    this.notifyPropertyChange('remainingTime', this._remainingTime);
+                } catch (error) {
+                    errorHandler.handleError(error, 'Timer Update');
+                }
             }
         });
 
         // Subscribe to match time up event
-        matchTimer.on('matchTimeUp', (data: any) => {
+        this._timeUpSubscription = matchTimer.on('matchTimeUp', (data: MatchTimeUpEvent) => {
             if (data.matchId === this.matchId) {
                 this.handleMatchTimeUp();
             }
         });
 
         // Subscribe to score dispute events
-        scoreVerification.on('scoreDispute', (data: any) => {
+        this._disputeSubscription = scoreVerification.on('scoreDispute', (data: ScoreDisputeEvent) => {
             if (data.matchId === this.matchId) {
                 this.handleScoreDispute(data.submissions);
             }
@@ -143,7 +167,12 @@ export class MatchDetailViewModel extends Observable {
     private updateActionStates() {
         if (!this._match) return;
 
-        const currentUserId = 'current-user-id'; // Replace with actual user ID
+        const currentUserId = AuthService.getCurrentUser()?.id;
+        if (!currentUserId) {
+            errorHandler.handleError(new Error('User not authenticated'), 'Update Action States');
+            return;
+        }
+
         const isParticipant = 
             this._match.player1_id === currentUserId || 
             this._match.player2_id === currentUserId;
@@ -283,8 +312,23 @@ export class MatchDetailViewModel extends Observable {
     }
 
     public onUnloaded(): void {
-        // Clean up timer and score submissions when navigating away
-        matchTimer.stopTimer(this.matchId);
-        scoreVerification.clearSubmissions(this.matchId);
+        try {
+            // Clean up timer and score submissions
+            matchTimer.stopTimer(this.matchId);
+            scoreVerification.clearSubmissions(this.matchId);
+
+            // Remove event listeners
+            if (this._timerSubscription) {
+                matchTimer.off('propertyChange', this._timerSubscription);
+            }
+            if (this._timeUpSubscription) {
+                matchTimer.off('matchTimeUp', this._timeUpSubscription);
+            }
+            if (this._disputeSubscription) {
+                scoreVerification.off('scoreDispute', this._disputeSubscription);
+            }
+        } catch (error) {
+            errorHandler.handleError(error, 'Match Detail Cleanup');
+        }
     }
 }
