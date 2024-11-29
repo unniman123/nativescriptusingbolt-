@@ -77,6 +77,11 @@ export async function testBasicUserFlow() {
         }
         console.log('✅ User login successful');
 
+        if (!signUpData.user) {
+            console.error('❌ No user data returned from sign-up');
+            return false;
+        }
+
         // 3. Test profile creation
         const { error: profileError } = await supabase
             .from('profiles')
