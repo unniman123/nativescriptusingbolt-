@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import { Observable } from '@nativescript/core';
-import type { User, Match } from './supabase';
+import type { Profile, Match } from './supabase';
 
 interface MatchmakingPreferences {
     gameMode: string;
@@ -60,13 +60,24 @@ export class MatchmakingService extends Observable {
     }
 
     private async getPlayerStats(userId: string): Promise<PlayerStats> {
+        // Ensure Supabase is initialized
+        if (!supabase) {
+            console.error('Supabase client is not initialized');
+            throw new Error('Supabase client is not available');
+        }
+
         // Fetch player's match history
-        const { data: matches } = await supabase
+        const { data: matches, error } = await supabase
             .from('matches')
             .select('*')
             .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
             .order('completed_at', { ascending: false })
             .limit(20);
+
+        if (error) {
+            console.error('Error fetching player stats:', error);
+            throw error;
+        }
 
         // Calculate player statistics
         let wins = 0;
@@ -84,11 +95,16 @@ export class MatchmakingService extends Observable {
         });
 
         // Get player's skill rating from the players table
-        const { data: player } = await supabase
+        const { data: player, error: playerError } = await supabase
             .from('players')
             .select('skill_rating, active_region')
             .eq('id', userId)
             .single();
+
+        if (playerError) {
+            console.error('Error fetching player skill rating:', playerError);
+            throw playerError;
+        }
 
         return {
             userId,
@@ -192,7 +208,10 @@ export class MatchmakingService extends Observable {
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Error creating match:', error);
+            throw error;
+        }
 
         // Notify players of the match
         this.notifyMatchCreated(match);
@@ -223,10 +242,15 @@ export class MatchmakingService extends Observable {
         activePlayersCount: number;
         regionDistribution: Record<string, number>;
     }> {
-        const { data: matches } = await supabase
+        const { data: matches, error } = await supabase
             .from('matches')
             .select('*')
             .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
+        if (error) {
+            console.error('Error fetching matchmaking stats:', error);
+            throw error;
+        }
 
         const stats = {
             averageWaitTime: 0,

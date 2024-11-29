@@ -1,12 +1,13 @@
+/// <reference types="node" />
 import { Observable } from '@nativescript/core';
 import { MatchmakingService } from '../../services/matchmaking-service';
-import { AuthService } from '../../services/auth-service';
+import { authService } from '../../services/auth-service';
 import { Frame } from '@nativescript/core';
 
 export class MatchmakingViewModel extends Observable {
     private matchmakingService: MatchmakingService;
     private searchStartTime: Date | null = null;
-    private waitTimeInterval: number | null = null;
+    private waitTimeInterval: NodeJS.Timeout | null = null;
 
     private _isSearching: boolean = false;
     private _selectedGameMode: 'casual' | 'ranked' | 'custom' = 'casual';
@@ -33,7 +34,7 @@ export class MatchmakingViewModel extends Observable {
         });
 
         this.matchmakingService.on('matchmakingTimeout', (args: any) => {
-            if (args.userId === AuthService.getCurrentUser()?.id) {
+            if (args.userId === authService.currentUser()?.id) {
                 this.onMatchmakingTimeout();
             }
         });
@@ -107,7 +108,7 @@ export class MatchmakingViewModel extends Observable {
     async startMatchmaking(): Promise<void> {
         if (this._isSearching) return;
 
-        const userId = AuthService.getCurrentUser()?.id;
+        const userId = authService.currentUser()?.id;
         if (!userId) {
             alert({
                 title: 'Error',
@@ -129,20 +130,28 @@ export class MatchmakingViewModel extends Observable {
             this.notifyPropertyChange('isSearching', true);
             this.searchStartTime = new Date();
             this.startWaitTimeCounter();
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to start matchmaking:', error);
-            alert({
-                title: 'Error',
-                message: error.message || 'Failed to start matchmaking',
-                okButtonText: 'OK'
-            });
+            if (error instanceof Error) {
+                alert({
+                    title: 'Error',
+                    message: error.message,
+                    okButtonText: 'OK'
+                });
+            } else {
+                alert({
+                    title: 'Error',
+                    message: 'An unknown error occurred',
+                    okButtonText: 'OK'
+                });
+            }
         }
     }
 
     async cancelSearch(): Promise<void> {
         if (!this._isSearching) return;
 
-        const userId = AuthService.getCurrentUser()?.id;
+        const userId = authService.currentUser()?.id;
         if (userId) {
             await this.matchmakingService.leaveMatchmaking(userId);
         }
@@ -207,7 +216,7 @@ export class MatchmakingViewModel extends Observable {
         if (this.waitTimeInterval) {
             clearInterval(this.waitTimeInterval);
         }
-        const userId = AuthService.getCurrentUser()?.id;
+        const userId = authService.currentUser()?.id;
         if (userId && this._isSearching) {
             this.matchmakingService.leaveMatchmaking(userId);
         }

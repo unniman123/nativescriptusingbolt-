@@ -1,11 +1,11 @@
 .tournament-list {
-    separator-color: transparent;
+    border-color: transparent;
 }
 
 .tournament-item {
     background-color: white;
     border-radius: 8;
-    elevation: 2;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .tournament-title {

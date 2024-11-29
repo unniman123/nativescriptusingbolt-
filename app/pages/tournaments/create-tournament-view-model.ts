@@ -1,4 +1,4 @@
-import { Observable, EventData, alert } from '@nativescript/core';
+import { Observable, EventData, alert, Frame } from '@nativescript/core';
 import { TournamentService } from '../../services/tournament-service';
 
 export class CreateTournamentViewModel extends Observable {
@@ -163,7 +163,7 @@ export class CreateTournamentViewModel extends Observable {
                 title: this._title,
                 game_type: this._gameTypes[this._selectedGameTypeIndex],
                 entry_fee: this._entryFee,
-                max_players: this._maxPlayers,
+                max_participants: this._maxPlayers,
                 start_time: this._startTime.toISOString(),
                 rules: this._rules,
                 status: 'open'
@@ -178,11 +178,11 @@ export class CreateTournamentViewModel extends Observable {
             // Navigate back
             const frame = Frame.topmost();
             frame.goBack();
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to create tournament:', error);
             alert({
                 title: 'Error',
-                message: error.message || 'Failed to create tournament',
+                message: error instanceof Error ? error.message : 'Failed to create tournament',
                 okButtonText: 'OK'
             });
         } finally {

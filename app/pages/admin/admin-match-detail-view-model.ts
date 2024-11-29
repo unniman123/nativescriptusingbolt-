@@ -1,4 +1,4 @@
-import { Observable, EventData } from '@nativescript/core';
+import { Observable, EventData, Frame } from '@nativescript/core';
 import { Match } from '../../services/supabase';
 import { MatchService } from '../../services/match-service';
 import { authService } from '../../services/auth-service';
@@ -107,13 +107,13 @@ export class AdminMatchDetailViewModel extends Observable {
             });
 
             // Navigate back to the admin matches list
-            const frame = Frame.topmost();
+            const frame = Frame.getFrameById('mainFrame');
             frame.goBack();
         } catch (error) {
             console.error('Failed to resolve dispute:', error);
             alert({
                 title: 'Error',
-                message: error.message || 'Failed to resolve dispute',
+                message: error instanceof Error ? error.message : 'Failed to resolve dispute',
                 okButtonText: 'OK'
             });
         }
@@ -159,7 +159,7 @@ export class AdminMatchDetailViewModel extends Observable {
             console.error('Failed to override match:', error);
             alert({
                 title: 'Error',
-                message: error.message || 'Failed to override match',
+                message: error instanceof Error ? error.message : 'Failed to override match',
                 okButtonText: 'OK'
             });
         }

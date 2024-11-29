@@ -1,7 +1,7 @@
 import { Observable, EventData, Frame } from '@nativescript/core';
 import { Match } from '../../services/supabase';
 import { MatchService } from '../../services/match-service';
-import { AuthService } from '../../services/auth-service';
+import { authService } from '../../services/auth-service';
 
 export class MatchesViewModel extends Observable {
     private _matches: Match[] = [];
@@ -11,7 +11,7 @@ export class MatchesViewModel extends Observable {
 
     constructor() {
         super();
-        this._currentUserId = AuthService.getCurrentUser()?.id;
+        this._currentUserId = authService.currentUser?.id;
         this.loadMatches();
     }
 
@@ -52,13 +52,21 @@ export class MatchesViewModel extends Observable {
             this.isLoading = true;
             this._matches = await MatchService.getUserMatches(this._currentUserId, this._filter);
             this.notifyPropertyChange('matches', this._matches);
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to load matches:', error);
-            alert({
-                title: 'Error',
-                message: error.message || 'Failed to load matches',
-                okButtonText: 'OK'
-            });
+            if (error instanceof Error) {
+                alert({
+                    title: 'Error',
+                    message: error.message || 'Failed to load matches',
+                    okButtonText: 'OK'
+                });
+            } else {
+                alert({
+                    title: 'Error',
+                    message: 'An unknown error occurred',
+                    okButtonText: 'OK'
+                });
+            }
         } finally {
             this.isLoading = false;
         }

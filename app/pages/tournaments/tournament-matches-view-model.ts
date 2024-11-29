@@ -39,11 +39,11 @@ export class TournamentMatchesViewModel extends Observable {
             this.isLoading = true;
             this._matches = await TournamentService.getTournamentMatches(this._tournament.id);
             this.notify({ object: this, eventName: Observable.propertyChangeEvent, propertyName: 'matches', value: this._matches });
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to load matches:', error);
             alert({
                 title: 'Error',
-                message: error.message || 'Failed to load tournament matches',
+                message: error instanceof Error ? error.message : 'Failed to load tournament matches',
                 okButtonText: 'OK'
             });
         } finally {

@@ -151,9 +151,10 @@ export class ErrorHandlingService extends Observable {
             alertOptions.cancelButtonText = 'Retry';
         }
 
-        alert(alertOptions).then((result) => {
-            if (!result && error.retryable) {
-                // User clicked Retry
+        alert(alertOptions).then(() => {
+            // This will always be called when the alert is dismissed
+            if (error.retryable) {
+                // Optionally, you might want to add a separate mechanism to track retry
                 this.notify({
                     eventName: 'retry',
                     object: this,

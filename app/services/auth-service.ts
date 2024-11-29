@@ -116,7 +116,21 @@ class AuthService extends Observable {
 
     async handleDeepLink(url: string): Promise<void> {
         try {
-            if (url.includes('verify-email') || url.includes('verify-signup')) {
+            console.log('[Auth] Handling deep link:', url);
+            
+            if (url.includes('auth/callback')) {
+                // Extract the tokens from the URL if present
+                const params = new URLSearchParams(url.split('?')[1]);
+                const accessToken = params.get('access_token');
+                const refreshToken = params.get('refresh_token');
+
+                if (accessToken && refreshToken) {
+                    await supabase.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken
+                    });
+                }
+
                 const { data: { user }, error } = await supabase.auth.getUser();
                 if (error) throw error;
 
@@ -135,6 +149,24 @@ class AuthService extends Observable {
             console.error('[Auth] Deep link handling error:', error);
             throw error;
         }
+    }
+
+    async signUp(email: string, password: string): Promise<void> {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                emailRedirectTo: 'nativescriptapp://auth/callback'
+            }
+        });
+
+        if (error) throw error;
+        
+        alert({
+            title: "Verification Required",
+            message: "Please check your email for a verification link.",
+            okButtonText: "OK"
+        });
     }
 
     async sendVerificationEmail(): Promise<void> {

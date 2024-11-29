@@ -130,10 +130,14 @@ export class MatchDetailViewModel extends Observable {
                 message: 'Match result submitted successfully',
                 okButtonText: 'OK'
             });
-        } catch (error) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error 
+                ? error.message 
+                : 'Failed to submit match result';
+            
             alert({
                 title: 'Error',
-                message: error.message || 'Failed to submit match result',
+                message: errorMessage,
                 okButtonText: 'OK'
             });
         } finally {
@@ -163,10 +167,14 @@ export class MatchDetailViewModel extends Observable {
                 message: 'Match dispute submitted successfully',
                 okButtonText: 'OK'
             });
-        } catch (error) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error 
+                ? error.message 
+                : 'Failed to dispute match';
+            
             alert({
                 title: 'Error',
-                message: error.message || 'Failed to dispute match',
+                message: errorMessage,
                 okButtonText: 'OK'
             });
         } finally {

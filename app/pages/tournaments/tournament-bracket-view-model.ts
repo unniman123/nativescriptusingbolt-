@@ -8,7 +8,7 @@ export class TournamentBracketViewModel extends Observable {
     private _tournament: Tournament;
     private _round1Matches: Match[] = [];
     private _round2Matches: Match[] = [];
-    private _finalMatch: Match = null;
+    private _finalMatch: Match | null = null;
     private _isLoading = false;
 
     constructor(tournament: Tournament) {
@@ -29,7 +29,7 @@ export class TournamentBracketViewModel extends Observable {
         return this._round2Matches;
     }
 
-    get finalMatch(): Match {
+    get finalMatch(): Match | null {
         return this._finalMatch;
     }
 
@@ -48,7 +48,7 @@ export class TournamentBracketViewModel extends Observable {
             // Sort matches by round number
             this._round1Matches = matches.filter(m => m.round === 1);
             this._round2Matches = matches.filter(m => m.round === 2);
-            this._finalMatch = matches.find(m => m.round === 3);
+            this._finalMatch = matches.find(m => m.round === 3) ?? null;
 
             // Subscribe to match updates
             MatchService.subscribeToTournamentMatches(this._tournament.id, (updatedMatch) => {

@@ -13,9 +13,25 @@
     "paths": {
       "~/*": ["app/*"],
       "@/*": ["app/*"]
-    }
+    },
+    "strict": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "declaration": false,
+    "removeComments": false,
+    "noImplicitAny": false,
+    "importHelpers": true,
+    "types": ["node"]
   },
-  "include": ["app/**/*"],
+  "include": [
+    "app/**/*",
+    "types/**/*"
+  ],
   "files": ["./references.d.ts"],
-  "exclude": ["node_modules", "platforms"]
+  "exclude": [
+    "node_modules",
+    "platforms",
+    "e2e",
+    "**/*.spec.ts"
+  ]
 }

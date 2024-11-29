@@ -117,6 +117,34 @@ export class MatchService {
     return data;
   }
 
+  static async validateMatchParticipants(matchId: string, userId: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('matches')
+      .select('player1_id, player2_id')
+      .eq('id', matchId)
+      .single();
+
+    if (error) throw error;
+
+    return data.player1_id === userId || data.player2_id === userId;
+  }
+
+  static async getMatchDetails(matchId: string): Promise<Match> {
+    const { data, error } = await supabase
+      .from('matches')
+      .select(`
+        *,
+        player1:player1_id(username, game_id),
+        player2:player2_id(username, game_id),
+        tournament:tournament_id(*)
+      `)
+      .eq('id', matchId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
   // Tournament Integration Methods
   static async generateTournamentMatches(tournamentId: string): Promise<void> {
     const { error } = await supabase.rpc('generate_tournament_matches', {
@@ -208,6 +236,39 @@ export class MatchService {
         }
       )
       .subscribe();
+  }
+
+  static subscribeToTournamentMatches(tournamentId: string, callback: (updatedMatch: Match) => void) {
+    // Unsubscribe from any existing channel
+    if (this.matchChannel) {
+      this.matchChannel.unsubscribe();
+    }
+
+    // Subscribe to real-time updates for matches in this tournament
+    this.matchChannel = supabase
+      .channel('tournament_matches')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'matches',
+          filter: `tournament_id=eq.${tournamentId}`
+        },
+        (payload) => {
+          if (payload.eventType === 'UPDATE') {
+            callback(payload.new as Match);
+          }
+        }
+      )
+      .subscribe();
+  }
+
+  static unsubscribeFromTournamentMatches() {
+    if (this.matchChannel) {
+      this.matchChannel.unsubscribe();
+      this.matchChannel = null;
+    }
   }
 
   static unsubscribeFromMatch(): void {

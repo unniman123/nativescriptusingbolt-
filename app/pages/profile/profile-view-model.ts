@@ -106,9 +106,13 @@ export class ProfileViewModel extends Observable {
                     this.gameId = profile.game_id || '';
                 }
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to load profile:', error);
-            this.errorMessage = error.message;
+            if (error instanceof Error) {
+                this.errorMessage = error.message;
+            } else {
+                this.errorMessage = 'An unknown error occurred';
+            }
         } finally {
             this.isLoading = false;
         }
@@ -136,9 +140,13 @@ export class ProfileViewModel extends Observable {
 
             if (updateError) throw updateError;
 
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to update profile:', error);
-            this.errorMessage = error.message;
+            if (error instanceof Error) {
+                this.errorMessage = error.message;
+            } else {
+                this.errorMessage = 'An unknown error occurred';
+            }
         } finally {
             this.isLoading = false;
         }
@@ -151,9 +159,13 @@ export class ProfileViewModel extends Observable {
                 moduleName: 'app/pages/auth/login-page',
                 clearHistory: true
             });
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Sign out error:', error);
-            this.errorMessage = error.message;
+            if (error instanceof Error) {
+                this.errorMessage = error.message;
+            } else {
+                this.errorMessage = 'An unknown error occurred';
+            }
         }
     }
 }

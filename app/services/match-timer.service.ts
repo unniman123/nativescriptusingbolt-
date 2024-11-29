@@ -27,7 +27,7 @@ interface TimerUpdateEvent {
 export class MatchTimerService extends Observable {
     private static instance: MatchTimerService;
     private timers: Map<string, MatchTimer> = new Map();
-    private intervals: Map<string, number> = new Map();
+    private intervals: Map<string, any> = new Map();
     private readonly MIN_DURATION = 1; // Minimum duration in minutes
     private readonly MAX_DURATION = 180; // Maximum duration in minutes (3 hours)
 

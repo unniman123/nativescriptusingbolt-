@@ -1,5 +1,5 @@
 import { Observable, Frame, Connectivity } from '@nativescript/core';
-import { supabase } from '../../services/supabase';
+import { supabase, getSupabase } from '../../services/supabase';
 
 export class RegisterViewModel extends Observable {
     private _username: string = '';
@@ -211,45 +211,44 @@ export class RegisterViewModel extends Observable {
             this.isLoading = true;
             this.errorMessage = '';
 
-            // Register user with Supabase
-            const { data: authData, error: authError } = await supabase.auth.signUp({
-                email: this.email,
-                password: this.password,
-                options: {
-                    data: {
-                        username: this.username,
-                        game_id: this.gameId || null
-                    }
-                }
-            });
+            try {
+                // Use getSupabase to ensure Supabase is initialized
+                const supabase = getSupabase();
 
-            if (authError) throw authError;
-
-            if (authData?.user) {
-                // Create profile in profiles table
-                const { error: profileError } = await supabase
-                    .from('profiles')
-                    .insert([
-                        {
-                            id: authData.user.id,
+                // Register user with Supabase
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email: this.email,
+                    password: this.password,
+                    options: {
+                        data: {
                             username: this.username,
-                            game_id: this.gameId || null,
-                            wallet_balance: 0
+                            game_id: this.gameId || null
                         }
-                    ]);
-
-                if (profileError) throw profileError;
-
-                // Navigate to verification page or login
-                const frame = Frame.topmost();
-                frame.navigate({
-                    moduleName: "pages/auth/login-page",
-                    clearHistory: true
+                    }
                 });
+
+                if (authError) {
+                    this.errorMessage = authError.message;
+                    this.isLoading = false;
+                    return;
+                }
+
+                // Handle successful registration
+                if (authData?.user) {
+                    // Navigate or perform post-registration actions
+                    Frame.topmost().navigate('pages/login/login-page');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                // Type guard to check if error is an Error object
+                this.errorMessage = error instanceof Error ? error.message : 'Failed to register. Please try again.';
+            } finally {
+                this.isLoading = false;
             }
         } catch (error) {
             console.error('Registration error:', error);
-            this.errorMessage = error.message || 'Failed to register. Please try again.';
+            // Type guard to check if error is an Error object
+            this.errorMessage = error instanceof Error ? error.message : 'Failed to register. Please try again.';
         } finally {
             this.isLoading = false;
         }

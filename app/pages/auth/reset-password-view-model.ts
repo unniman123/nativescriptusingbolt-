@@ -130,9 +130,12 @@ export class ResetPasswordViewModel extends Observable {
             await authService.resetPassword(this._email);
             this.errorMessage = 'Password reset link has been sent to your email';
 
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Reset password error:', error);
-            this.errorMessage = error.message;
+            const errorMessage = error instanceof Error 
+                ? error.message 
+                : 'An unexpected error occurred';
+            this.errorMessage = errorMessage;
         } finally {
             this.isLoading = false;
         }
@@ -155,7 +158,11 @@ export class ResetPasswordViewModel extends Observable {
 
         } catch (error) {
             console.error('Update password error:', error);
-            this.errorMessage = error.message;
+            if (error instanceof Error) {
+                this.errorMessage = error.message;
+            } else {
+                this.errorMessage = 'An unknown error occurred';
+            }
         } finally {
             this.isLoading = false;
         }

@@ -1,7 +1,7 @@
 import { Observable, EventData, alert, Frame } from '@nativescript/core';
-import { Tournament } from '../../services/supabase';
+import { Profile, Tournament } from '../../services/supabase';
 import { TournamentService } from '../../services/tournament-service';
-import { AuthService } from '../../services/auth-service';
+import { authService } from '../../services/auth-service';
 import { tournamentRules } from '../../services/tournament-rules.service';
 import { errorHandler } from '../../services/error-handling.service';
 
@@ -52,7 +52,7 @@ export class TournamentDetailViewModel extends Observable {
         if (this.isLoading) return;
 
         try {
-            const currentUser = AuthService.getCurrentUser();
+            const currentUser = authService.currentUser();
             if (!currentUser) {
                 throw new Error('Please login to join tournaments');
             }
@@ -76,11 +76,11 @@ export class TournamentDetailViewModel extends Observable {
                 message: 'Successfully joined tournament!',
                 okButtonText: 'OK'
             });
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to join tournament:', error);
             alert({
                 title: "Error",
-                message: error.message || "Failed to join tournament",
+                message: error instanceof Error ? error.message : "Failed to join tournament",
                 okButtonText: "OK"
             });
         } finally {
@@ -114,8 +114,8 @@ export class TournamentDetailViewModel extends Observable {
 
     private async loadTournamentDetails(): Promise<void> {
         try {
-            // Load tournament rules
-            this._tournament = await TournamentService.getTournament(this.tournamentId);
+            // Load tournament details
+            this._tournament = await TournamentService.getTournamentDetails(this.tournamentId);
             this._formattedRules = tournamentRules.getFormattedRules(this._tournament.game_type);
             this.notifyPropertyChange('formattedRules', this._formattedRules);
         } catch (error) {

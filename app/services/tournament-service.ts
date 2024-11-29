@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Tournament } from './supabase';
+import type { Match, Tournament } from './supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
 export class TournamentService {
@@ -115,6 +115,10 @@ export class TournamentService {
       .eq('id', tournamentId)
       .single();
 
+    if (!profile) {
+      return { eligible: false, reason: 'User profile not found' };
+    }
+
     if (!profile.game_id) {
       return { eligible: false, reason: 'Game ID not set' };
     }
@@ -203,16 +207,18 @@ export class TournamentService {
       [participants[i], participants[j]] = [participants[j], participants[i]];
     }
 
-    // Generate matches
-    const matches = [];
+    const matches: Match[] = [];
     for (let i = 0; i < participants.length - 1; i += 2) {
       matches.push({
         tournament_id: tournamentId,
         player1_id: participants[i],
         player2_id: participants[i + 1],
-        match_number: Math.floor(i / 2) + 1,
-        status: 'pending'
-      });
+        status: 'scheduled',
+        scheduled_time: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        round: 1,
+        match_number: Math.floor(i / 2) + 1
+      } as Match);
     }
 
     // If odd number of participants, last player gets a bye
@@ -220,9 +226,12 @@ export class TournamentService {
       matches.push({
         tournament_id: tournamentId,
         player1_id: participants[participants.length - 1],
-        match_number: Math.ceil(participants.length / 2),
-        status: 'bye'
-      });
+        status: 'scheduled',
+        scheduled_time: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        round: 1,
+        match_number: Math.ceil(participants.length / 2)
+      } as Match);
     }
 
     const { error: matchError } = await supabase
@@ -277,13 +286,33 @@ export class TournamentService {
 
   static async verifyUserEligibility(tournamentId: string, userId: string): Promise<{ eligible: boolean, reason?: string }> {
     // Get user and tournament details
-    const [{ data: user }, { data: tournament }] = await Promise.all([
+    const [{ data: user, error: userError }, { data: tournament, error: tournamentError }] = await Promise.all([
       supabase.from('users').select('wallet_balance, game_id').eq('id', userId).single(),
       supabase.from('tournaments').select('game_type').eq('id', tournamentId).single()
     ]);
 
+    // Check for errors or missing user
+    if (userError || !user) {
+      return { 
+        eligible: false, 
+        reason: userError ? 
+          `User lookup failed: ${userError.message}` : 
+          'User not found. Please check your account.'
+      };
+    }
+
     if (!user.game_id) {
       return { eligible: false, reason: 'Game ID not set. Please update your profile.' };
+    }
+
+    // Check for tournament errors
+    if (tournamentError || !tournament) {
+      return {
+        eligible: false,
+        reason: tournamentError ?
+          `Tournament lookup failed: ${tournamentError.message}` :
+          'Tournament not found.'
+      };
     }
 
     return { eligible: true };

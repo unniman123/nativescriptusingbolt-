@@ -1,5 +1,5 @@
 import { Observable, Frame, alert } from '@nativescript/core';
-import { supabase } from '../../services/supabase';
+import { supabase, getSupabase } from '../../services/supabase';
 import { authService } from '../../services/auth-service';
 
 export class LoginViewModel extends Observable {
@@ -124,7 +124,8 @@ export class LoginViewModel extends Observable {
                 return;
             }
 
-            const { data: { user }, error } = await supabase.auth.signInWithPassword({
+            const client = getSupabase(); 
+            const { data: { user }, error } = await client.auth.signInWithPassword({
                 email: this._email,
                 password: this._password
             });
@@ -144,9 +145,9 @@ export class LoginViewModel extends Observable {
                 });
             }
 
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Login error:', error);
-            this.errorMessage = error.message;
+            this.errorMessage = error instanceof Error ? error.message : String(error);
         } finally {
             this.isLoading = false;
         }
@@ -161,9 +162,9 @@ export class LoginViewModel extends Observable {
                 message: "Verification email has been resent. Please check your inbox.",
                 okButtonText: "OK"
             });
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to resend verification email:', error);
-            this.errorMessage = error.message;
+            this.errorMessage = error instanceof Error ? error.message : String(error);
         } finally {
             this.isLoading = false;
         }

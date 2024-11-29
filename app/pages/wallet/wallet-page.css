@@ -1,0 +1,48 @@
+.wallet-balance {
+    background-color: #007AFF;
+    color: white;
+    border-radius: 10;
+    margin: 16;
+}
+
+.transaction-list {
+    background-color: white;
+    border-bottom-color: #EEEEEE;
+}
+
+.transaction-item {
+    background-color: white;
+    border-bottom-width: 1;
+    border-bottom-color: #EEEEEE;
+}
+
+.transaction-icon {
+    font-size: 24;
+    width: 40;
+    height: 40;
+    text-align: center;
+    vertical-align: center;
+    background-color: #F5F5F5;
+    border-radius: 20;
+}
+
+.transaction-description {
+    font-size: 16;
+    color: #333333;
+}
+
+.transaction-date {
+    font-size: 14;
+    color: #999999;
+    margin-top: 4;
+}
+
+.amount-credit {
+    color: #28A745;
+    font-weight: bold;
+}
+
+.amount-debit {
+    color: #DC3545;
+    font-weight: bold;
+}
