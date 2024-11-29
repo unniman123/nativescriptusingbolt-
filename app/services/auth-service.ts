@@ -12,6 +12,7 @@ class AuthService extends Observable {
     private readonly TFA_KEY = 'tfa_enabled';
     private readonly VERIFICATION_RESEND_DELAY = 60000; // 1 minute
     private _lastVerificationEmailSent: number = 0;
+    private verificationCheckInterval: any = null;
 
     private constructor() {
         super();
@@ -119,29 +120,35 @@ class AuthService extends Observable {
             console.log('[Auth] Handling deep link:', url);
             
             if (url.includes('auth/callback')) {
-                // Extract the tokens from the URL if present
                 const params = new URLSearchParams(url.split('?')[1]);
                 const accessToken = params.get('access_token');
                 const refreshToken = params.get('refresh_token');
+                const type = params.get('type');
 
                 if (accessToken && refreshToken) {
+                    console.log('[Auth] Setting session from deep link tokens');
                     await supabase.auth.setSession({
                         access_token: accessToken,
                         refresh_token: refreshToken
                     });
                 }
 
-                const { data: { user }, error } = await supabase.auth.getUser();
-                if (error) throw error;
+                if (type === 'signup' || type === 'recovery') {
+                    const { data: { user }, error } = await supabase.auth.getUser();
+                    if (error) throw error;
 
-                if (user) {
-                    await this.checkEmailVerification();
-                    if (this._isEmailVerified) {
-                        alert({
-                            title: "Success",
-                            message: "Your email has been verified successfully!",
-                            okButtonText: "OK"
-                        });
+                    if (user) {
+                        await this.checkEmailVerification();
+                        if (this._isEmailVerified) {
+                            this.startVerificationCheck(); // Start checking for verification
+                            alert({
+                                title: "Success",
+                                message: type === 'signup' 
+                                    ? "Your email has been verified successfully!"
+                                    : "Your password has been reset successfully!",
+                                okButtonText: "OK"
+                            });
+                        }
                     }
                 }
             }
@@ -152,21 +159,66 @@ class AuthService extends Observable {
     }
 
     async signUp(email: string, password: string): Promise<void> {
-        const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                emailRedirectTo: 'nativescriptapp://auth/callback'
-            }
-        });
+        try {
+            console.log('[Auth] Starting sign up process for:', email);
+            
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    emailRedirectTo: 'nativescriptapp://auth/callback',
+                    data: {
+                        email_confirmed: false
+                    }
+                }
+            });
 
-        if (error) throw error;
-        
-        alert({
-            title: "Verification Required",
-            message: "Please check your email for a verification link.",
-            okButtonText: "OK"
-        });
+            if (error) throw error;
+            
+            if (data?.user) {
+                console.log('[Auth] Sign up successful, user created:', data.user.id);
+                this._currentUser = data.user;
+                
+                // Store the session immediately
+                if (data.session) {
+                    ApplicationSettings.setString(this.SESSION_KEY, JSON.stringify(data.session));
+                }
+                
+                // Set up auto-verification check
+                this.startVerificationCheck();
+                
+                alert({
+                    title: "Verification Required",
+                    message: "Please check your email for a verification link. The app will automatically detect when you verify your email.",
+                    okButtonText: "OK"
+                });
+            }
+        } catch (error) {
+            console.error('[Auth] Sign up failed:', error);
+            throw error;
+        }
+    }
+
+    private startVerificationCheck() {
+        if (this.verificationCheckInterval) {
+            clearInterval(this.verificationCheckInterval);
+        }
+
+        console.log('[Auth] Starting verification check interval');
+        this.verificationCheckInterval = setInterval(async () => {
+            const isVerified = await this.checkEmailVerification();
+            if (isVerified) {
+                console.log('[Auth] Email verified, clearing check interval');
+                clearInterval(this.verificationCheckInterval);
+                this.verificationCheckInterval = null;
+                
+                alert({
+                    title: "Success",
+                    message: "Your email has been verified successfully!",
+                    okButtonText: "OK"
+                });
+            }
+        }, 5000); // Check every 5 seconds
     }
 
     async sendVerificationEmail(): Promise<void> {
@@ -244,12 +296,23 @@ class AuthService extends Observable {
     }
 
     async signOut() {
+        if (this.verificationCheckInterval) {
+            clearInterval(this.verificationCheckInterval);
+            this.verificationCheckInterval = null;
+        }
+        
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
+        
         ApplicationSettings.remove(this.SESSION_KEY);
         ApplicationSettings.remove(this.TFA_KEY);
         this._isTwoFactorEnabled = false;
         this._isEmailVerified = false;
+        this._currentUser = null;
+        this._isAuthenticated = false;
+        
+        this.notifyPropertyChange('isAuthenticated', false);
+        this.notifyPropertyChange('currentUser', null);
     }
 
     async resetPassword(email: string) {
