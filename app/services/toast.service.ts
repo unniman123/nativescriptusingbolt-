@@ -1,5 +1,5 @@
 import { Application } from '@nativescript/core';
-import { Toasty } from 'nativescript-toasty';
+import { Toasty, ToastDuration } from 'nativescript-toasty';
 
 export class ToastService {
     private static instance: ToastService;
@@ -13,35 +13,50 @@ export class ToastService {
         return ToastService.instance;
     }
 
-    public success(message: string, duration: number = 2000): void {
+    private convertDurationToToastDuration(duration: string): ToastDuration {
+        switch (duration.toLowerCase()) {
+            case 'short':
+                return ToastDuration.SHORT;
+            case 'long':
+                return ToastDuration.LONG;
+            default:
+                return ToastDuration.SHORT;
+        }
+    }
+
+    public success(message: string, duration: string = 'short'): void {
+        const toastDuration = this.convertDurationToToastDuration(duration);
         const toast = new Toasty({ 
             text: message, 
-            duration: duration 
+            duration: toastDuration
         });
         toast.show();
     }
 
-    public error(message: string, duration: number = 3000): void {
+    public error(message: string, duration: string = 'long'): void {
+        const toastDuration = this.convertDurationToToastDuration(duration);
         const toast = new Toasty({ 
             text: message, 
-            duration: duration,
+            duration: toastDuration,
             backgroundColor: 'red'
         });
         toast.show();
     }
 
-    public info(message: string, duration: number = 2000): void {
+    public info(message: string, duration: string = 'short'): void {
+        const toastDuration = this.convertDurationToToastDuration(duration);
         const toast = new Toasty({ 
             text: message, 
-            duration: duration
+            duration: toastDuration
         });
         toast.show();
     }
 
-    public warning(message: string, duration: number = 2500): void {
+    public warning(message: string, duration: string = 'long'): void {
+        const toastDuration = this.convertDurationToToastDuration(duration);
         const toast = new Toasty({ 
             text: message, 
-            duration: duration,
+            duration: toastDuration,
             backgroundColor: 'yellow'
         });
         toast.show();

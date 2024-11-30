@@ -1,7 +1,7 @@
 import { Observable, EventData, alert } from '@nativescript/core';
 import { Match } from '../../services/supabase';
 import { MatchService } from '../../services/match-service';
-import { AuthService } from '../../services/auth-service';
+import { authService } from '../../services/auth-service';
 
 export class MatchDetailViewModel extends Observable {
     private _match: Match;
@@ -17,7 +17,7 @@ export class MatchDetailViewModel extends Observable {
     constructor(match: Match) {
         super();
         this._match = match;
-        this._currentUserId = AuthService.getCurrentUser()?.id;
+        this._currentUserId = authService.currentUser()?.id;
         this.initializeMatch();
     }
 

@@ -64,6 +64,7 @@ export type Tournament = {
   start_time: string;
   created_at: string;
   rules?: string;
+  matches?: Match[]; 
 };
 
 export type Match = {

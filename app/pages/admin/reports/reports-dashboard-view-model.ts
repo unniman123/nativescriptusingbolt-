@@ -1,5 +1,5 @@
 import { Observable } from '@nativescript/core';
-import { Frame } from '@nativescript/core';
+import { Frame, NavigationEntry } from '@nativescript/core';
 import { adminService } from '../../../services/admin.service';
 import { toast } from '../../../services/toast.service';
 import { ChartService } from '../../../services/chart.service';

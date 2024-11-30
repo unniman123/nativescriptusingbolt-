@@ -1,4 +1,4 @@
-import { Observable } from '@nativescript/core';
+import { Frame, Observable } from '@nativescript/core';
 import { adminService } from '../../../services/admin.service';
 import { toast } from '../../../services/toast.service';
 
@@ -87,25 +87,26 @@ export class SystemSettingsViewModel extends Observable {
         return changedSettings;
     }
 
-    onMaintenanceModeChange(args: any) {
+    async onMaintenanceModeChange(args: any) {
         if (args.value) {
             // Show confirmation dialog before enabling maintenance mode
-            Frame.topmost().showModal({
-                moduleName: "shared/confirm-dialog",
+            const modalView = await Frame.topmost().showModal({
+                view: 'pages/dialogs/confirm-dialog',
                 context: {
                     title: 'Enable Maintenance Mode',
                     message: 'Enabling maintenance mode will prevent users from accessing the app. Are you sure?',
                     okButtonText: 'Enable',
                     cancelButtonText: 'Cancel'
                 },
-                fullscreen: false
-            }).then((result) => {
-                if (!result) {
-                    // Revert the switch if user cancels
-                    this._settings.maintenanceMode = false;
-                    this.notifyPropertyChange('settings', this._settings);
+                fullscreen: false,
+                closeCallback: (result: boolean) => {
+                    if (!result) {
+                        // Revert the switch if user cancels
+                        this._settings.maintenanceMode = false;
+                        this.notifyPropertyChange('settings', this._settings);
+                    }
                 }
-            });
+            } as any);
         }
     }
 

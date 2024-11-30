@@ -2,12 +2,13 @@ import { Observable } from '@nativescript/core';
 import { chat, ChatMessage } from '../../services/chat.service';
 import { supabase } from '../../services/supabase';
 import { toast } from '../../services/toast.service';
+import { v4 as generateUUID } from 'uuid';
 
 export class ChatViewModel extends Observable {
     private roomId: string;
     private messages: ChatMessage[] = [];
     private messageText: string = '';
-    private currentUserId: string;
+    private currentUserId: string = '';
     private roomTitle: string = 'Chat';
     private _reconnectAttempts: number = 0;
     private _maxReconnectAttempts: number = 5;
@@ -19,11 +20,20 @@ export class ChatViewModel extends Observable {
     constructor(roomId: string, type: 'direct' | 'match' | 'tournament', title: string) {
         super();
         this.roomId = roomId;
-        this.currentUserId = supabase.auth.user()?.id;
-        this.roomTitle = title;
-        
-        this.initializeChat();
-        this.startMessageCleanup();
+        this.roomTitle = title || this.roomTitle;
+        this.initializeAsync();
+    }
+
+    private async initializeAsync() {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            this.currentUserId = user?.id || '';
+            this.initializeChat();
+            this.startMessageCleanup();
+        } catch (error) {
+            toast.error('Failed to initialize chat');
+            console.error('Chat initialization error:', error);
+        }
     }
 
     private async initializeChat() {
@@ -49,13 +59,19 @@ export class ChatViewModel extends Observable {
             .on('broadcast', { event: 'message' }, payload => {
                 this.handleNewMessage(payload.payload);
             })
-            .subscribe(async (status) => {
-                if (status === 'SUBSCRIBED') {
-                    this._reconnectAttempts = 0;
-                    clearTimeout(this._reconnectTimeout);
-                    await this.trackPresence();
-                } else if (status === 'DISCONNECTED') {
-                    this.handleDisconnection();
+            .subscribe(async (status: string) => {
+                switch (status) {
+                    case 'SUBSCRIBED':
+                        this._reconnectAttempts = 0;
+                        clearTimeout(this._reconnectTimeout);
+                        await this.trackPresence();
+                        break;
+                    case 'TIMED_OUT':
+                    case 'CLOSED':
+                    case 'CHANNEL_ERROR':
+                    case 'DISCONNECTED':
+                        this.handleDisconnection();
+                        break;
                 }
             });
     }

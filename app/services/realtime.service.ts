@@ -4,6 +4,9 @@ import { supabase } from './supabase';
 import { toast } from './toast.service';
 
 export class RealtimeService extends Observable {
+    getCurrentUser() {
+        throw new Error('Method not implemented.');
+    }
     private static instance: RealtimeService;
     private channels: Map<string, RealtimeChannel> = new Map();
 
@@ -22,8 +25,9 @@ export class RealtimeService extends Observable {
     public subscribeTournament(tournamentId: string): RealtimeChannel {
         const channelKey = `tournament:${tournamentId}`;
         
-        if (this.channels.has(channelKey)) {
-            return this.channels.get(channelKey);
+        const existingChannel = this.channels.get(channelKey);
+        if (existingChannel) {
+            return existingChannel;
         }
 
         const channel = supabase
@@ -40,23 +44,11 @@ export class RealtimeService extends Observable {
                     data: payload.new
                 });
             })
-            .on('postgres_changes', {
-                event: '*',
-                schema: 'public',
-                table: 'matches',
-                filter: `tournament_id=eq.${tournamentId}`
-            }, (payload) => {
-                this.notify({
-                    eventName: 'matchUpdate',
-                    object: this,
-                    data: payload.new
-                });
-            })
-            .subscribe((status) => {
-                if (status === 'SUBSCRIBED') {
-                    toast.success('Connected to real-time updates');
-                }
-            });
+            .subscribe();
+
+        if (!channel) {
+            throw new Error('Failed to create realtime channel');
+        }
 
         this.channels.set(channelKey, channel);
         return channel;
@@ -66,8 +58,9 @@ export class RealtimeService extends Observable {
     public subscribeMatch(matchId: string): RealtimeChannel {
         const channelKey = `match:${matchId}`;
         
-        if (this.channels.has(channelKey)) {
-            return this.channels.get(channelKey);
+        const existingChannel = this.channels.get(channelKey);
+        if (existingChannel) {
+            return existingChannel;
         }
 
         const channel = supabase
@@ -79,16 +72,16 @@ export class RealtimeService extends Observable {
                 filter: `id=eq.${matchId}`
             }, (payload) => {
                 this.notify({
-                    eventName: 'matchDetailUpdate',
+                    eventName: 'matchUpdate',
                     object: this,
                     data: payload.new
                 });
             })
-            .subscribe((status) => {
-                if (status === 'SUBSCRIBED') {
-                    toast.info('Connected to match updates');
-                }
-            });
+            .subscribe();
+
+        if (!channel) {
+            throw new Error('Failed to create realtime channel');
+        }
 
         this.channels.set(channelKey, channel);
         return channel;
@@ -98,26 +91,30 @@ export class RealtimeService extends Observable {
     public subscribeUserNotifications(userId: string): RealtimeChannel {
         const channelKey = `user:${userId}:notifications`;
         
-        if (this.channels.has(channelKey)) {
-            return this.channels.get(channelKey);
+        const existingChannel = this.channels.get(channelKey);
+        if (existingChannel) {
+            return existingChannel;
         }
 
         const channel = supabase
             .channel(channelKey)
             .on('postgres_changes', {
-                event: 'INSERT',
+                event: '*',
                 schema: 'public',
                 table: 'notifications',
                 filter: `user_id=eq.${userId}`
             }, (payload) => {
                 this.notify({
-                    eventName: 'newNotification',
+                    eventName: 'notificationUpdate',
                     object: this,
                     data: payload.new
                 });
-                toast.info(payload.new.message);
             })
             .subscribe();
+
+        if (!channel) {
+            throw new Error('Failed to create realtime channel');
+        }
 
         this.channels.set(channelKey, channel);
         return channel;

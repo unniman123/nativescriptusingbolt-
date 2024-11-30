@@ -13,6 +13,9 @@ export interface Transaction {
 }
 
 export class WalletService {
+    static addFunds(arg0: number) {
+        throw new Error('Method not implemented.');
+    }
     private static instance: WalletService;
     private _balance = new BehaviorSubject<number>(0);
     private _transactions = new BehaviorSubject<Transaction[]>([]);

@@ -67,21 +67,33 @@ class ErrorService extends Observable {
         // Implementation depends on your auth service
     }
 
-    private async handleNetworkError(error: any, config: ErrorConfig) {
-        if (config.retry && config.maxRetries > 0) {
+    private async handleNetworkError(error: any, config: ErrorConfig = this.DEFAULT_CONFIG) {
+        const maxRetries = config.maxRetries ?? this.DEFAULT_CONFIG.maxRetries ?? 3;
+        
+        if (config.retry && maxRetries > 0) {
             // Implement retry logic with exponential backoff
-            for (let attempt = 0; attempt < config.maxRetries; attempt++) {
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
                 try {
                     // Retry the failed operation
                     // Implementation depends on your retry strategy
                     break;
                 } catch (retryError) {
-                    if (attempt === config.maxRetries - 1) {
+                    if (attempt === maxRetries - 1) {
                         throw retryError;
                     }
+                    // Add delay between retries
                     await this.delay(Math.pow(2, attempt) * 1000);
                 }
             }
+        }
+
+        if (config.showDialog ?? this.DEFAULT_CONFIG.showDialog) {
+            const errorMessage = this.getUserFriendlyMessage(error);
+            await Dialogs.alert({
+                title: 'Network Error',
+                message: errorMessage,
+                okButtonText: 'OK'
+            });
         }
     }
 

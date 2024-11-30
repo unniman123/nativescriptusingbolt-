@@ -7,9 +7,12 @@ describe('Real-time Features Integration', () => {
 
     beforeAll(async () => {
         // Set up test database and subscriptions
-        await supabase.auth.signIn({
-            email: process.env.TEST_ADMIN_EMAIL,
-            password: process.env.TEST_ADMIN_PASSWORD
+        const email = process.env.TEST_ADMIN_EMAIL ?? 'default@example.com';
+        const password = process.env.TEST_ADMIN_PASSWORD ?? 'defaultPassword';
+
+        await supabase.auth.signInWithPassword({
+            email,
+            password
         });
     });
 
@@ -24,12 +27,19 @@ describe('Real-time Features Integration', () => {
     describe('Tournament Updates', () => {
         it('should receive real-time tournament updates', (done) => {
             subscription = supabase
-                .from('tournaments')
-                .on('UPDATE', (payload) => {
-                    expect(payload.new).toBeDefined();
-                    expect(payload.old).toBeDefined();
-                    done();
-                })
+                .channel('tournament_updates')
+                .on('postgres_changes', 
+                    { 
+                        event: 'UPDATE', 
+                        schema: 'public', 
+                        table: 'tournaments' 
+                    }, 
+                    (payload) => {
+                        expect(payload.new).toBeDefined();
+                        expect(payload.old).toBeDefined();
+                        done();
+                    }
+                )
                 .subscribe();
 
             // Trigger a tournament update
@@ -40,11 +50,18 @@ describe('Real-time Features Integration', () => {
     describe('Chat Moderation', () => {
         it('should handle real-time message flagging', (done) => {
             subscription = supabase
-                .from('flagged_messages')
-                .on('INSERT', (payload) => {
-                    expect(payload.new.status).toBe('pending');
-                    done();
-                })
+                .channel('flagged_messages')
+                .on('postgres_changes', 
+                    { 
+                        event: 'INSERT', 
+                        schema: 'public', 
+                        table: 'flagged_messages' 
+                    }, 
+                    (payload) => {
+                        expect(payload.new.status).toBe('pending');
+                        done();
+                    }
+                )
                 .subscribe();
 
             // Simulate message flagging
@@ -55,12 +72,19 @@ describe('Real-time Features Integration', () => {
     describe('User Reports', () => {
         it('should process user reports in real-time', (done) => {
             subscription = supabase
-                .from('reported_content')
-                .on('INSERT', (payload) => {
-                    expect(payload.new.type).toBe('user');
-                    expect(payload.new.status).toBe('pending');
-                    done();
-                })
+                .channel('reported_content')
+                .on('postgres_changes', 
+                    { 
+                        event: 'INSERT', 
+                        schema: 'public', 
+                        table: 'reported_content' 
+                    }, 
+                    (payload) => {
+                        expect(payload.new.type).toBe('user');
+                        expect(payload.new.status).toBe('pending');
+                        done();
+                    }
+                )
                 .subscribe();
 
             // Simulate user report

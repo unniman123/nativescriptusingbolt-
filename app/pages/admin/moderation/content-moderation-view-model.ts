@@ -4,6 +4,12 @@ import { adminService } from '../../../services/admin.service';
 import { moderationService } from '../../../services/moderation.service';
 import { toast } from '../../../services/toast.service';
 
+interface ModerationActionResult {
+    action: string;
+    reason: string;
+    duration?: string;
+}
+
 export class ContentModerationViewModel extends Observable {
     private _selectedTabIndex: number = 0;
     private _reportedContent: any[] = [];
@@ -11,6 +17,7 @@ export class ContentModerationViewModel extends Observable {
     private _userContent: any[] = [];
     private _tournamentContent: any[] = [];
     private _isLoading: boolean = false;
+    private _currentFilters: { [key: string]: any } = {};
 
     constructor() {
         super();
@@ -27,6 +34,15 @@ export class ContentModerationViewModel extends Observable {
             this.notifyPropertyChange('selectedTabIndex', value);
             this.loadContent();
         }
+    }
+
+    get currentFilters(): { [key: string]: any } {
+        return this._currentFilters;
+    }
+
+    set currentFilters(value: { [key: string]: any }) {
+        this._currentFilters = value;
+        this.notifyPropertyChange('currentFilters', value);
     }
 
     async loadContent() {
@@ -83,13 +99,15 @@ export class ContentModerationViewModel extends Observable {
 
     async onReportAction(args: any) {
         const report = args.object.bindingContext;
-        const result = await Frame.topmost().showModal({
+        const modalResult = await Frame.topmost().showModal({
             moduleName: "pages/admin/moderation/report-action-dialog",
             context: { report },
             fullscreen: false
         });
+        
+        const result = modalResult as unknown as ModerationActionResult;
 
-        if (result) {
+        if (result?.action && result?.reason) {
             try {
                 await moderationService.handleReport(report.id, result.action, result.reason);
                 toast.success('Report handled successfully');
@@ -103,17 +121,19 @@ export class ContentModerationViewModel extends Observable {
 
     async onChatAction(args: any) {
         const message = args.object.bindingContext;
-        const result = await Frame.topmost().showModal({
+        const modalResult = await Frame.topmost().showModal({
             moduleName: "pages/admin/moderation/chat-action-dialog",
             context: { message },
             fullscreen: false
         });
+        
+        const result = modalResult as unknown as ModerationActionResult;
 
-        if (result) {
+        if (result?.action && result?.reason) {
             try {
                 await moderationService.handleChatMessage(message.id, result.action, result.reason);
                 if (result.action === 'ban') {
-                    await adminService.banUser(message.userId, result.reason, result.duration);
+                    await adminService.banUser(message.userId, result.reason, Number(result.duration));
                 }
                 toast.success('Message handled successfully');
                 await this.loadChatMessages();
@@ -126,13 +146,15 @@ export class ContentModerationViewModel extends Observable {
 
     async onUserContentAction(args: any) {
         const content = args.object.bindingContext;
-        const result = await Frame.topmost().showModal({
+        const modalResult = await Frame.topmost().showModal({
             moduleName: "pages/admin/moderation/user-content-action-dialog",
             context: { content },
             fullscreen: false
         });
+        
+        const result = modalResult as unknown as ModerationActionResult;
 
-        if (result) {
+        if (result?.action && result?.reason) {
             try {
                 await moderationService.handleUserContent(content.id, result.action, result.reason);
                 toast.success('Content handled successfully');
@@ -145,25 +167,23 @@ export class ContentModerationViewModel extends Observable {
     }
 
     async onTournamentContentAction(args: any) {
-        const tournament = args.object.bindingContext;
-        const result = await Frame.topmost().showModal({
-            moduleName: "pages/admin/moderation/tournament-action-dialog",
-            context: { tournament },
+        const content = args.object.bindingContext;
+        const modalResult = await Frame.topmost().showModal({
+            moduleName: "pages/admin/moderation/tournament-content-action-dialog",
+            context: { content },
             fullscreen: false
         });
+        
+        const result = modalResult as unknown as ModerationActionResult;
 
-        if (result) {
+        if (result?.action && result?.reason) {
             try {
-                await moderationService.handleTournamentContent(
-                    tournament.id, 
-                    result.action, 
-                    result.reason
-                );
-                toast.success('Tournament content handled successfully');
+                await moderationService.handleTournamentContent(content.id, result.action, result.reason);
+                toast.success('Content handled successfully');
                 await this.loadTournamentContent();
             } catch (error) {
-                toast.error('Failed to handle tournament content');
-                console.error('Error handling tournament content:', error);
+                toast.error('Failed to handle content');
+                console.error('Error handling content:', error);
             }
         }
     }

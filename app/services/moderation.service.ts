@@ -104,13 +104,14 @@ class ModerationService extends Observable {
 
     async handleReport(reportId: string, action: string, reason: string) {
         try {
+            const { data: { user } } = await supabase.auth.getUser();
             const { error } = await supabase
                 .from('reported_content')
                 .update({
                     status: action,
                     moderationReason: reason,
                     moderatedAt: new Date(),
-                    moderatedBy: supabase.auth.user()?.id
+                    moderatedBy: user?.id
                 })
                 .eq('id', reportId);
 
@@ -123,13 +124,14 @@ class ModerationService extends Observable {
 
     async handleChatMessage(messageId: string, action: string, reason: string) {
         try {
+            const { data: { user } } = await supabase.auth.getUser();
             const { error } = await supabase
                 .from('flagged_messages')
                 .update({
                     status: action,
                     moderationReason: reason,
                     moderatedAt: new Date(),
-                    moderatedBy: supabase.auth.user()?.id
+                    moderatedBy: user?.id
                 })
                 .eq('id', messageId);
 
@@ -150,13 +152,14 @@ class ModerationService extends Observable {
 
     async handleUserContent(contentId: string, action: string, reason: string) {
         try {
+            const { data: { user } } = await supabase.auth.getUser();
             const { error } = await supabase
                 .from('user_content_moderation')
                 .update({
                     status: action,
                     moderationReason: reason,
                     moderatedAt: new Date(),
-                    moderatedBy: supabase.auth.user()?.id
+                    moderatedBy: user?.id
                 })
                 .eq('id', contentId);
 
@@ -180,13 +183,14 @@ class ModerationService extends Observable {
 
     async handleTournamentContent(tournamentId: string, action: string, reason: string) {
         try {
+            const { data: { user } } = await supabase.auth.getUser();
             const { error } = await supabase
                 .from('tournament_content_moderation')
                 .update({
                     status: action,
                     moderationReason: reason,
                     moderatedAt: new Date(),
-                    moderatedBy: supabase.auth.user()?.id
+                    moderatedBy: user?.id
                 })
                 .eq('id', tournamentId);
 

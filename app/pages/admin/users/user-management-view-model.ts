@@ -3,10 +3,21 @@ import { Frame } from '@nativescript/core';
 import { adminService } from '../../../services/admin.service';
 import { toast } from '../../../services/toast.service';
 
+interface BanUserModalResult {
+    banned: boolean;
+    reason: string;
+    duration: number;
+}
+
+export interface UserActionModalResult {
+    action: 'view' | 'edit' | 'ban' | 'delete';
+}
+
 export class UserManagementViewModel extends Observable {
     private _users: any[] = [];
     private _isLoading: boolean = false;
     private _searchQuery: string = '';
+    currentFilters: any;
 
     constructor() {
         super();
@@ -99,13 +110,15 @@ export class UserManagementViewModel extends Observable {
     async onUserAction(args: any) {
         const user = args.object.bindingContext;
         
-        const result = await Frame.topmost().showModal({
+        const modalResult = await Frame.topmost().showModal({
             moduleName: "pages/admin/users/user-actions",
             context: { user },
             fullscreen: false
         });
 
-        if (result) {
+        // Type guard to ensure we have a valid result
+        if (modalResult && typeof modalResult === 'object' && 'action' in modalResult) {
+            const result = modalResult as UserActionModalResult;
             switch (result.action) {
                 case 'view':
                     this.viewUserDetails(user);
@@ -138,8 +151,11 @@ export class UserManagementViewModel extends Observable {
             fullscreen: true
         });
 
-        if (result && result.updated) {
-            await this.loadUsers();
+        if (result && typeof result === 'object' && 'action' in result) {
+            const typedResult = result as UserActionModalResult;
+            if (typedResult.action === 'edit') {
+                await this.loadUsers();
+            }
         }
     }
 
@@ -148,7 +164,7 @@ export class UserManagementViewModel extends Observable {
             moduleName: "pages/admin/users/ban-user",
             context: { user },
             fullscreen: false
-        });
+        }) as unknown as BanUserModalResult;
 
         if (result && result.banned) {
             try {

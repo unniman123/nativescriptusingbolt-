@@ -11,8 +11,10 @@ describe('Admin Dashboard E2E', () => {
     });
 
     async function loginAsAdmin() {
-        await element(by.id('email')).typeText(process.env.TEST_ADMIN_EMAIL);
-        await element(by.id('password')).typeText(process.env.TEST_ADMIN_PASSWORD);
+        const email = process.env.TEST_ADMIN_EMAIL || "default@example.com";
+        const password = process.env.TEST_ADMIN_PASSWORD || "defaultpassword";
+        await element(by.id('email')).typeText(email);
+        await element(by.id('password')).typeText(password);
         await element(by.id('login-button')).tap();
         await expect(element(by.id('admin-dashboard'))).toBeVisible();
     }

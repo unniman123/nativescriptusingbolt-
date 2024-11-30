@@ -1,4 +1,4 @@
-import { Observable, EventData, alert, Frame } from '@nativescript/core';
+import { Observable, EventData, alert, Frame, View } from '@nativescript/core';
 import { Profile, Tournament } from '../../services/supabase';
 import { TournamentService } from '../../services/tournament-service';
 import { authService } from '../../services/auth-service';
@@ -135,8 +135,11 @@ export class TournamentDetailViewModel extends Observable {
             tournamentRealtime.watchTournament(tournamentId);
             
             // Subscribe to tournament updates
-            tournamentRealtime.on('tournamentUpdate', (update: TournamentUpdate) => {
-                this.handleTournamentUpdate(update);
+            tournamentRealtime.on('tournamentUpdate', (eventData: EventData) => {
+                // Type guard to ensure the object is a TournamentUpdate
+                if (this.isTournamentUpdate(eventData.object)) {
+                    this.handleTournamentUpdate(eventData.object);
+                }
             });
 
             // Subscribe to bracket updates
@@ -151,6 +154,10 @@ export class TournamentDetailViewModel extends Observable {
             toast.error('Failed to initialize tournament');
             console.error('Tournament initialization error:', error);
         }
+    }
+
+    private isTournamentUpdate(object: any): object is TournamentUpdate {
+        return 'type' in object && 'data' in object;
     }
 
     private async handleTournamentUpdate(update: TournamentUpdate) {
@@ -184,7 +191,7 @@ export class TournamentDetailViewModel extends Observable {
 
     private handleBracketUpdate(update: any) {
         // Update the bracket data
-        if (this._tournament.matches) {
+        if (this._tournament && this._tournament.matches) {
             const matchIndex = this._tournament.matches.findIndex(m => m.id === update.id);
             if (matchIndex !== -1) {
                 this._tournament.matches[matchIndex] = update;
@@ -194,7 +201,7 @@ export class TournamentDetailViewModel extends Observable {
     }
 
     openChat() {
-        if (this.chatRoomId) {
+        if (this.chatRoomId && this._tournament) {
             // Navigate to chat page
             const navigationEntry = {
                 moduleName: "pages/chat/chat-page",
@@ -212,5 +219,10 @@ export class TournamentDetailViewModel extends Observable {
 
     onUnloaded() {
         tournamentRealtime.unwatchTournament();
+    }
+
+    private getViewById(id: string): View | null {
+        const page = Frame.topmost()?.currentPage;
+        return page ? page.getViewById(id) as View : null;
     }
 }

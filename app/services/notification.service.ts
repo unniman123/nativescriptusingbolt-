@@ -28,7 +28,8 @@ export class NotificationService extends Observable {
     }
 
     private async initialize() {
-        const user = supabase.auth.user();
+        const { data } = await supabase.auth.getUser();
+        const user = data.user;
         if (user) {
             await this.loadUnreadCount();
             this.subscribeToNotifications(user.id);
@@ -93,8 +94,11 @@ export class NotificationService extends Observable {
         return this.unreadCount;
     }
 
-    public cleanup() {
-        realtime.unsubscribe(`user:${supabase.auth.user()?.id}:notifications`);
+    public async cleanup() {
+        const { data, error } = await supabase.auth.getUser();
+        if (data.user) {
+            realtime.unsubscribe(`user:${data.user.id}:notifications`);
+        }
     }
 }
 

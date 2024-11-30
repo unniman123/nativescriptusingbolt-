@@ -48,11 +48,13 @@ class NetworkService extends Observable {
         const timeoutId = setTimeout(() => controller.abort(), finalConfig.timeout);
         options.signal = controller.signal;
 
-        let lastError: Error;
+        let lastError: Error | null = null;
         for (let attempt = 0; attempt < finalConfig.retryAttempts; attempt++) {
             try {
-                const response = await fetch(url, options);
-                clearTimeout(timeoutId);
+                const response = await fetch(url, {
+                    ...options,
+                    signal: controller.signal
+                });
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -66,15 +68,19 @@ class NetworkService extends Observable {
                 }
 
                 return data;
-            } catch (error) {
-                lastError = error;
+            } catch (error: any) {
+                if (error instanceof Error) {
+                    lastError = error;
+                } else {
+                    lastError = new Error('Unknown error');
+                }
                 if (attempt < finalConfig.retryAttempts - 1) {
                     await this.delay(finalConfig.retryDelay * Math.pow(2, attempt));
                 }
             }
         }
 
-        throw lastError;
+        throw lastError || new Error('Failed after all retry attempts');
     }
 
     private delay(ms: number): Promise<void> {
@@ -90,12 +96,7 @@ class NetworkService extends Observable {
     }
 
     isMobile(): boolean {
-        return (
-            this.connectionType === Connectivity.connectionType.mobile ||
-            this.connectionType === Connectivity.connectionType.mobile2g ||
-            this.connectionType === Connectivity.connectionType.mobile3g ||
-            this.connectionType === Connectivity.connectionType.mobile4g
-        );
+        return this.connectionType === Connectivity.connectionType.mobile;
     }
 
     async optimizedImageLoad(url: string, quality: 'low' | 'medium' | 'high' = 'medium'): Promise<string> {

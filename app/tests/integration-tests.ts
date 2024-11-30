@@ -1,10 +1,10 @@
-import { supabase } from '../services/supabase';
-import { authService } from '../services/auth-service';
-import { profileService } from '../services/profile-service';
-import { tournamentService } from '../services/tournament-service';
-import { matchService } from '../services/match-service';
-import { walletService } from '../services/wallet-service';
-import { matchmakingService } from '../services/matchmaking-service';
+import { Supabase } from '../services/supabase';
+import { AuthService } from '../services/auth-service';
+import { ProfileService } from '../services/profile-service';
+import { TournamentService } from '../services/tournament-service';
+import { MatchService } from '../services/match-service';
+import { WalletService } from '../services/wallet-service';
+import { MatchmakingService } from '../services/matchmaking-service';
 
 async function runIntegrationTests() {
     console.log('🔄 Starting Integration Tests...\n');
@@ -13,6 +13,14 @@ async function runIntegrationTests() {
     let testTournament: any = null;
     let testMatch: any = null;
 
+    const supabase = new Supabase();
+    const authService = new AuthService();
+    const profileService = new ProfileService();
+    const tournamentService = new TournamentService();
+    const matchService = new MatchService();
+    const walletService = new WalletService();
+    const matchmakingService = new MatchmakingService();
+
     try {
         // 1. Authentication Tests
         console.log('1️⃣ Testing Authentication:');
@@ -20,7 +28,7 @@ async function runIntegrationTests() {
         // Sign Up
         const testEmail = `test_${Date.now()}@example.com`;
         const testPassword = 'Test123!@#';
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        const { data: signUpData, error: signUpError } = await authService.signUp({
             email: testEmail,
             password: testPassword
         });
@@ -30,7 +38,7 @@ async function runIntegrationTests() {
         testUser = signUpData.user;
 
         // Sign In
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error: signInError } = await authService.signInWithPassword({
             email: testEmail,
             password: testPassword
         });
@@ -43,25 +51,20 @@ async function runIntegrationTests() {
         
         // Create Profile
         const username = `testuser_${Date.now()}`;
-        const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .insert([{
-                id: testUser.id,
-                username: username,
-                wallet_balance: 0
-            }])
-            .select()
-            .single();
+        const { data: profile, error: profileError } = await profileService.createProfile({
+            id: testUser.id,
+            username: username,
+            wallet_balance: 0
+        });
             
         if (profileError) throw profileError;
         console.log('✅ Profile created successfully');
         testProfile = profile;
 
         // Update Profile
-        const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ game_id: 'GAME#123' })
-            .eq('id', testUser.id);
+        const { error: updateError } = await profileService.updateProfile({
+            game_id: 'GAME#123'
+        }, testUser.id);
             
         if (updateError) throw updateError;
         console.log('✅ Profile updated successfully');
@@ -70,32 +73,26 @@ async function runIntegrationTests() {
         console.log('\n3️⃣ Testing Tournament System:');
         
         // Create Tournament
-        const { data: tournament, error: tournamentError } = await supabase
-            .from('tournaments')
-            .insert([{
-                title: 'Test Tournament',
-                game_type: 'Test Game',
-                entry_fee: 10,
-                prize_pool: 100,
-                max_participants: 8,
-                current_participants: 0,
-                status: 'open'
-            }])
-            .select()
-            .single();
+        const { data: tournament, error: tournamentError } = await tournamentService.createTournament({
+            title: 'Test Tournament',
+            game_type: 'Test Game',
+            entry_fee: 10,
+            prize_pool: 100,
+            max_participants: 8,
+            current_participants: 0,
+            status: 'open'
+        });
             
         if (tournamentError) throw tournamentError;
         console.log('✅ Tournament created successfully');
         testTournament = tournament;
 
         // Join Tournament
-        const { error: joinError } = await supabase
-            .from('matches')
-            .insert([{
-                tournament_id: testTournament.id,
-                player1_id: testUser.id,
-                status: 'scheduled'
-            }]);
+        const { error: joinError } = await tournamentService.joinTournament({
+            tournament_id: testTournament.id,
+            player1_id: testUser.id,
+            status: 'scheduled'
+        });
             
         if (joinError) throw joinError;
         console.log('✅ Tournament joined successfully');
@@ -104,26 +101,21 @@ async function runIntegrationTests() {
         console.log('\n4️⃣ Testing Match System:');
         
         // Create Match
-        const { data: match, error: matchError } = await supabase
-            .from('matches')
-            .insert([{
-                tournament_id: testTournament.id,
-                player1_id: testUser.id,
-                status: 'scheduled',
-                scheduled_time: new Date().toISOString()
-            }])
-            .select()
-            .single();
+        const { data: match, error: matchError } = await matchService.createMatch({
+            tournament_id: testTournament.id,
+            player1_id: testUser.id,
+            status: 'scheduled',
+            scheduled_time: new Date().toISOString()
+        });
             
         if (matchError) throw matchError;
         console.log('✅ Match created successfully');
         testMatch = match;
 
         // Update Match Status
-        const { error: updateMatchError } = await supabase
-            .from('matches')
-            .update({ status: 'in_progress' })
-            .eq('id', testMatch.id);
+        const { error: updateMatchError } = await matchService.updateMatchStatus({
+            status: 'in_progress'
+        }, testMatch.id);
             
         if (updateMatchError) throw updateMatchError;
         console.log('✅ Match status updated successfully');
@@ -132,23 +124,20 @@ async function runIntegrationTests() {
         console.log('\n5️⃣ Testing Wallet System:');
         
         // Add Transaction
-        const { error: transactionError } = await supabase
-            .from('transactions')
-            .insert([{
-                user_id: testUser.id,
-                amount: 50,
-                type: 'deposit',
-                status: 'completed'
-            }]);
+        const { error: transactionError } = await walletService.addTransaction({
+            user_id: testUser.id,
+            amount: 50,
+            type: 'deposit',
+            status: 'completed'
+        });
             
         if (transactionError) throw transactionError;
         console.log('✅ Transaction created successfully');
 
         // Update Wallet Balance
-        const { error: balanceError } = await supabase
-            .from('profiles')
-            .update({ wallet_balance: 50 })
-            .eq('id', testUser.id);
+        const { error: balanceError } = await walletService.updateWalletBalance({
+            wallet_balance: 50
+        }, testUser.id);
             
         if (balanceError) throw balanceError;
         console.log('✅ Wallet balance updated successfully');
@@ -160,16 +149,16 @@ async function runIntegrationTests() {
         
         // Cleanup on failure
         if (testMatch) {
-            await supabase.from('matches').delete().eq('id', testMatch.id);
+            await matchService.deleteMatch(testMatch.id);
         }
         if (testTournament) {
-            await supabase.from('tournaments').delete().eq('id', testTournament.id);
+            await tournamentService.deleteTournament(testTournament.id);
         }
         if (testProfile) {
-            await supabase.from('profiles').delete().eq('id', testProfile.id);
+            await profileService.deleteProfile(testProfile.id);
         }
         if (testUser) {
-            await supabase.auth.admin.deleteUser(testUser.id);
+            await authService.deleteUser(testUser.id);
         }
     }
 }

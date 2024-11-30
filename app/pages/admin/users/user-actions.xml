@@ -1,0 +1,8 @@
+<Page shownModally="onShownModally">
+    <GridLayout rows="auto, auto, auto, auto" columns="*" class="p-20">
+        <Button text="View Details" tap="onViewTap" row="0" class="btn btn-primary m-b-10"/>
+        <Button text="Edit User" tap="onEditTap" row="1" class="btn btn-info m-b-10"/>
+        <Button text="Ban User" tap="onBanTap" row="2" class="btn btn-warning m-b-10"/>
+        <Button text="Delete User" tap="onDeleteTap" row="3" class="btn btn-danger"/>
+    </GridLayout>
+</Page>

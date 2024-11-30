@@ -21,7 +21,7 @@
     "removeComments": false,
     "noImplicitAny": false,
     "importHelpers": true,
-    "types": ["node"]
+    "types": ["node", "detox", "@types/detox"]
   },
   "include": [
     "app/**/*",
@@ -31,7 +31,6 @@
   "exclude": [
     "node_modules",
     "platforms",
-    "e2e",
-    "**/*.spec.ts"
+    "e2e"
   ]
 }

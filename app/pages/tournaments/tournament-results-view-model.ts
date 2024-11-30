@@ -11,6 +11,31 @@ interface PlayerResult {
     wins: number;
 }
 
+export interface Match {
+    id: string;
+    tournament_id: string;
+    player1_id: string;
+    player2_id?: string;
+    winner_id?: string;
+    status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+    scheduled_time?: string;
+    completed_time?: string;
+    players?: {
+        player1: {
+            id: string;
+            username: string;
+        };
+        player2?: {
+            id: string;
+            username: string;
+        };
+    };
+    winner?: {
+        id: string;
+        username: string;
+    };
+}
+
 interface TournamentStats {
     totalMatches: number;
     totalPlayers: number;
@@ -19,7 +44,7 @@ interface TournamentStats {
 export class TournamentResultsViewModel extends Observable {
     private _tournament: Tournament;
     private _results: PlayerResult[] = [];
-    private _matches = [];
+    private _matches: Match[] = [];
     private _stats: TournamentStats = {
         totalMatches: 0,
         totalPlayers: 0
@@ -42,7 +67,7 @@ export class TournamentResultsViewModel extends Observable {
         return this._results;
     }
 
-    get matches() {
+    get matches(): Match[] {
         return this._matches;
     }
 
@@ -65,19 +90,27 @@ export class TournamentResultsViewModel extends Observable {
     async loadResults() {
         try {
             this._isLoading = true;
-            this._error = false;
-            this._errorMessage = '';
             this.notifyPropertyChange('isLoading', true);
             this.notifyPropertyChange('error', false);
 
             const matches = await MatchService.getMatchesByTournament(this._tournament.id);
-            this._matches = matches;
+            this._matches = matches.map(match => ({
+                ...match,
+                players: {
+                    player1: match.player1,
+                    player2: match.player2
+                },
+                winner: match.winner_id ? {
+                    id: match.winner_id,
+                    username: match.winner_id === match.player1?.id ? match.player1?.username : match.player2?.username
+                } : undefined
+            }));
             
             const playerStats = new Map<string, { wins: number, username: string }>();
             
             matches.forEach(match => {
-                if (match.winner_id) {
-                    const stats = playerStats.get(match.winner_id) || { wins: 0, username: match.winner?.username };
+                if (match.winner_id && match.winner?.username) {
+                    const stats = playerStats.get(match.winner_id) || { wins: 0, username: match.winner.username };
                     stats.wins++;
                     playerStats.set(match.winner_id, stats);
                 }
@@ -108,12 +141,12 @@ export class TournamentResultsViewModel extends Observable {
             this.notifyPropertyChange('matches', this._matches);
             this.notifyPropertyChange('results', this._results);
             this.notifyPropertyChange('stats', this._stats);
-        } catch (error) {
-            console.error('Failed to load tournament results:', error);
+        } catch (error: unknown) {
             this._error = true;
-            this._errorMessage = error.message || 'Failed to load tournament results';
+            this._errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
             this.notifyPropertyChange('error', true);
             this.notifyPropertyChange('errorMessage', this._errorMessage);
+            console.error('Error loading tournament results:', error);
         } finally {
             this._isLoading = false;
             this.notifyPropertyChange('isLoading', false);

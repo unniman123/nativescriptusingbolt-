@@ -2,6 +2,9 @@ import { supabase } from './supabase';
 import type { Profile } from './supabase';
 
 export class ProfileService {
+  static getCurrentUserId() {
+      throw new Error('Method not implemented.');
+  }
   static async getProfile(userId: string): Promise<Profile | null> {
     const { data, error } = await supabase
       .from('profiles')
