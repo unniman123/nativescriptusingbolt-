@@ -4,6 +4,11 @@ import { adminService } from '../../../services/admin.service';
 import { toast } from '../../../services/toast.service';
 import { ChartService } from '../../../services/chart.service';
 
+interface ExportOptions {
+    type: string;
+    format: string;
+}
+
 export class ReportsDashboardViewModel extends Observable {
     private _startDate: Date;
     private _endDate: Date;
@@ -56,7 +61,7 @@ export class ReportsDashboardViewModel extends Observable {
             this.set('totalRevenue', revenueData.total);
             this.set('revenueGrowth', revenueData.growth);
             this.set('revenueChartUrl', 
-                this.chartService.generateRevenueChart(revenueData.timeline));
+                this.chartService.generateChartData(revenueData.timeline));
 
             // Load user analytics
             const userData = await adminService.getUserAnalytics(
@@ -160,14 +165,17 @@ export class ReportsDashboardViewModel extends Observable {
     }
 
     async exportReport() {
-        const result = await Frame.topmost().showModal({
+        const navigationEntry: NavigationEntry = {
             moduleName: "pages/admin/reports/export-options",
             context: {
                 startDate: this._startDate,
                 endDate: this._endDate
             },
-            fullscreen: false
-        });
+            clearHistory: false,
+            animated: true
+        };
+
+        const result = await Frame.topmost().navigate(navigationEntry);
 
         if (result) {
             try {
