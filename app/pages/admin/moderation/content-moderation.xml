@@ -1,0 +1,140 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo" class="page">
+    <ActionBar title="Content Moderation" class="action-bar">
+        <NavigationButton text="Back" android.systemIcon="ic_menu_back" />
+        <ActionItem ios.position="right" android.position="actionBar" tap="{{ refreshContent }}">
+            <Label text="&#xf2f1;" class="fas" />
+        </ActionItem>
+    </ActionBar>
+
+    <TabView selectedIndex="{{ selectedTabIndex }}" class="moderation-tabs">
+        <!-- Reported Content Tab -->
+        <TabViewItem title="Reported">
+            <TabViewItem.view>
+                <GridLayout rows="auto, *">
+                    <!-- Filter Bar -->
+                    <GridLayout row="0" columns="*, auto" class="filter-bar p-10">
+                        <SearchBar col="0" hint="Search reports..." text="{{ searchQuery }}" 
+                                 submit="{{ onSearch }}" clear="{{ onClear }}" />
+                        <Button col="1" text="&#xf1de;" class="fas filter-button" tap="{{ showFilters }}" />
+                    </GridLayout>
+
+                    <!-- Reports List -->
+                    <ListView row="1" items="{{ reportedContent }}" class="reports-list">
+                        <ListView.itemTemplate>
+                            <GridLayout columns="*, auto" class="report-item p-10">
+                                <StackLayout col="0">
+                                    <Label text="{{ type }}" class="report-type" />
+                                    <Label text="{{ content }}" textWrap="true" class="report-content" />
+                                    <GridLayout columns="auto, auto, *" class="report-details">
+                                        <Label col="0" text="{{ reportCount + ' reports' }}" class="detail-text" />
+                                        <Label col="1" text="{{ reportedAt, 'dd MMM HH:mm' }}" class="detail-text" />
+                                        <Label col="2" text="{{ status }}" class="status-badge status-{{ status }}" />
+                                    </GridLayout>
+                                </StackLayout>
+                                <Button col="1" text="&#xf142;" class="fas action-button" 
+                                        tap="{{ $parents['ListView'].onReportAction }}" />
+                            </GridLayout>
+                        </ListView.itemTemplate>
+                    </ListView>
+                </GridLayout>
+            </TabViewItem.view>
+        </TabViewItem>
+
+        <!-- Chat Moderation Tab -->
+        <TabViewItem title="Chat">
+            <TabViewItem.view>
+                <GridLayout rows="auto, *">
+                    <!-- Filter Bar -->
+                    <GridLayout row="0" columns="*, auto" class="filter-bar p-10">
+                        <SearchBar col="0" hint="Search messages..." text="{{ chatSearchQuery }}" 
+                                 submit="{{ onChatSearch }}" clear="{{ onChatClear }}" />
+                        <Button col="1" text="&#xf1de;" class="fas filter-button" tap="{{ showChatFilters }}" />
+                    </GridLayout>
+
+                    <!-- Chat Messages List -->
+                    <ListView row="1" items="{{ chatMessages }}" class="chat-list">
+                        <ListView.itemTemplate>
+                            <GridLayout columns="*, auto" class="chat-item p-10">
+                                <StackLayout col="0">
+                                    <Label text="{{ username }}" class="username" />
+                                    <Label text="{{ message }}" textWrap="true" class="message-content" />
+                                    <GridLayout columns="auto, auto" class="message-details">
+                                        <Label col="0" text="{{ channel }}" class="detail-text" />
+                                        <Label col="1" text="{{ timestamp, 'dd MMM HH:mm' }}" class="detail-text" />
+                                    </GridLayout>
+                                </StackLayout>
+                                <Button col="1" text="&#xf142;" class="fas action-button" 
+                                        tap="{{ $parents['ListView'].onChatAction }}" />
+                            </GridLayout>
+                        </ListView.itemTemplate>
+                    </ListView>
+                </GridLayout>
+            </TabViewItem.view>
+        </TabViewItem>
+
+        <!-- User Content Tab -->
+        <TabViewItem title="Users">
+            <TabViewItem.view>
+                <GridLayout rows="auto, *">
+                    <!-- Filter Bar -->
+                    <GridLayout row="0" columns="*, auto" class="filter-bar p-10">
+                        <SearchBar col="0" hint="Search user content..." text="{{ userContentSearchQuery }}" 
+                                 submit="{{ onUserContentSearch }}" clear="{{ onUserContentClear }}" />
+                        <Button col="1" text="&#xf1de;" class="fas filter-button" tap="{{ showUserContentFilters }}" />
+                    </GridLayout>
+
+                    <!-- User Content List -->
+                    <ListView row="1" items="{{ userContent }}" class="user-content-list">
+                        <ListView.itemTemplate>
+                            <GridLayout columns="auto, *, auto" class="user-content-item p-10">
+                                <Image col="0" src="{{ contentUrl }}" class="content-thumbnail" 
+                                       visibility="{{ contentType === 'image' ? 'visible' : 'collapsed' }}" />
+                                <StackLayout col="1">
+                                    <Label text="{{ username }}" class="username" />
+                                    <Label text="{{ contentType }}" class="content-type" />
+                                    <Label text="{{ content }}" textWrap="true" class="content-text" />
+                                    <Label text="{{ timestamp, 'dd MMM HH:mm' }}" class="detail-text" />
+                                </StackLayout>
+                                <Button col="2" text="&#xf142;" class="fas action-button" 
+                                        tap="{{ $parents['ListView'].onUserContentAction }}" />
+                            </GridLayout>
+                        </ListView.itemTemplate>
+                    </ListView>
+                </GridLayout>
+            </TabViewItem.view>
+        </TabViewItem>
+
+        <!-- Tournament Content Tab -->
+        <TabViewItem title="Tournaments">
+            <TabViewItem.view>
+                <GridLayout rows="auto, *">
+                    <!-- Filter Bar -->
+                    <GridLayout row="0" columns="*, auto" class="filter-bar p-10">
+                        <SearchBar col="0" hint="Search tournaments..." text="{{ tournamentSearchQuery }}" 
+                                 submit="{{ onTournamentSearch }}" clear="{{ onTournamentClear }}" />
+                        <Button col="1" text="&#xf1de;" class="fas filter-button" tap="{{ showTournamentFilters }}" />
+                    </GridLayout>
+
+                    <!-- Tournament Content List -->
+                    <ListView row="1" items="{{ tournamentContent }}" class="tournament-content-list">
+                        <ListView.itemTemplate>
+                            <GridLayout columns="*, auto" class="tournament-content-item p-10">
+                                <StackLayout col="0">
+                                    <Label text="{{ title }}" class="tournament-title" />
+                                    <Label text="{{ description }}" textWrap="true" class="tournament-description" />
+                                    <GridLayout columns="auto, auto, auto" class="tournament-details">
+                                        <Label col="0" text="{{ prizePool }}" class="detail-text" />
+                                        <Label col="1" text="{{ rules }}" class="detail-text" />
+                                        <Label col="2" text="{{ status }}" class="status-badge status-{{ status }}" />
+                                    </GridLayout>
+                                </StackLayout>
+                                <Button col="1" text="&#xf142;" class="fas action-button" 
+                                        tap="{{ $parents['ListView'].onTournamentContentAction }}" />
+                            </GridLayout>
+                        </ListView.itemTemplate>
+                    </ListView>
+                </GridLayout>
+            </TabViewItem.view>
+        </TabViewItem>
+    </TabView>
+</Page>

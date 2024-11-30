@@ -1,0 +1,42 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo" class="page">
+    <ActionBar title="Tournament Management" class="action-bar">
+        <NavigationButton text="Back" android.systemIcon="ic_menu_back" />
+        <ActionItem ios.position="right" android.position="actionBar" tap="{{ createTournament }}">
+            <Label text="&#xf067;" class="fas" />
+        </ActionItem>
+    </ActionBar>
+
+    <GridLayout rows="auto, *">
+        <!-- Filter Bar -->
+        <GridLayout row="0" columns="*, auto" class="filter-bar p-10">
+            <SearchBar col="0" hint="Search tournaments..." text="{{ searchQuery }}" 
+                      submit="{{ onSearch }}" clear="{{ onClear }}" />
+            <Button col="1" text="&#xf1de;" class="fas filter-button" tap="{{ showFilters }}" />
+        </GridLayout>
+
+        <!-- Tournament List -->
+        <ListView row="1" items="{{ tournaments }}" class="tournament-list">
+            <ListView.itemTemplate>
+                <GridLayout columns="*, auto" class="tournament-item p-10">
+                    <!-- Tournament Info -->
+                    <StackLayout col="0">
+                        <Label text="{{ title }}" class="title" />
+                        <GridLayout columns="auto, auto, auto" class="details">
+                            <Label col="0" text="{{ players + '/' + maxPlayers }}" class="detail-text" />
+                            <Label col="1" text="{{ '₹' + entryFee }}" class="detail-text" />
+                            <Label col="2" text="{{ status }}" class="status-badge status-{{ status }}" />
+                        </GridLayout>
+                        <Label text="{{ startTime, 'dd MMM yyyy, HH:mm' }}" class="time-text" />
+                    </StackLayout>
+
+                    <!-- Actions Menu -->
+                    <Button col="1" text="&#xf142;" class="fas action-button" 
+                            tap="{{ $parents['ListView'].onTournamentAction }}" />
+                </GridLayout>
+            </ListView.itemTemplate>
+        </ListView>
+
+        <!-- Loading Indicator -->
+        <ActivityIndicator rowSpan="2" busy="{{ isLoading }}" />
+    </GridLayout>
+</Page>

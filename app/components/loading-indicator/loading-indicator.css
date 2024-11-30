@@ -1,0 +1,29 @@
+.loading-container {
+    z-index: 999;
+}
+
+.loading-overlay {
+    width: 100%;
+    height: 100%;
+}
+
+.loading-content {
+    width: 150;
+    height: 100;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 10;
+    padding: 15;
+}
+
+.loading-indicator {
+    width: 40;
+    height: 40;
+    margin-bottom: 10;
+    color: white;
+}
+
+.loading-text {
+    color: white;
+    font-size: 14;
+    text-align: center;
+}

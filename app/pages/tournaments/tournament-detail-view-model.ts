@@ -4,6 +4,10 @@ import { TournamentService } from '../../services/tournament-service';
 import { authService } from '../../services/auth-service';
 import { tournamentRules } from '../../services/tournament-rules.service';
 import { errorHandler } from '../../services/error-handling.service';
+import { tournamentRealtime, TournamentUpdate } from '../../services/tournament-realtime.service';
+import { chat } from '../../services/chat.service';
+import { toast } from '../../services/toast.service';
+import { AnimationService } from '../../services/animation.service';
 
 export class TournamentDetailViewModel extends Observable {
     private _tournament: Tournament | null = null;
@@ -13,10 +17,12 @@ export class TournamentDetailViewModel extends Observable {
     private _isLoading: boolean = false;
     private _showRules: boolean = false;
     private _formattedRules: string = '';
+    private chatRoomId: string | null = null;
 
     constructor(private tournamentId: string) {
         super();
         this.loadTournamentDetails();
+        this.initializeTournament(tournamentId);
     }
 
     get tournament(): Tournament {
@@ -121,5 +127,90 @@ export class TournamentDetailViewModel extends Observable {
         } catch (error) {
             errorHandler.handleError(error, 'Loading Tournament Details');
         }
+    }
+
+    private async initializeTournament(tournamentId: string) {
+        try {
+            // Start watching tournament updates
+            tournamentRealtime.watchTournament(tournamentId);
+            
+            // Subscribe to tournament updates
+            tournamentRealtime.on('tournamentUpdate', (update: TournamentUpdate) => {
+                this.handleTournamentUpdate(update);
+            });
+
+            // Subscribe to bracket updates
+            tournamentRealtime.on('bracketUpdate', (update: any) => {
+                this.handleBracketUpdate(update);
+            });
+
+            // Initialize tournament chat
+            this.chatRoomId = await chat.getOrCreateTournamentChat(tournamentId);
+
+        } catch (error) {
+            toast.error('Failed to initialize tournament');
+            console.error('Tournament initialization error:', error);
+        }
+    }
+
+    private async handleTournamentUpdate(update: TournamentUpdate) {
+        // Update the tournament data
+        this._tournament = { ...this._tournament, ...update.data };
+        this.notifyPropertyChange('tournament', this._tournament);
+
+        // Show relevant notifications
+        switch (update.type) {
+            case 'status_change':
+                toast.info(`Tournament status changed to ${update.data.status}`);
+                break;
+            case 'player_count':
+                toast.info(`Player count: ${update.data.current_participants}/${update.data.max_participants}`);
+                // Animate the players count
+                const playersElement = this.getViewById('playersCount');
+                if (playersElement) {
+                    await AnimationService.bounce(playersElement);
+                }
+                break;
+            case 'prize_update':
+                toast.info(`Prize pool updated: ₹${update.data.prize_pool}`);
+                // Animate the prize pool
+                const prizeElement = this.getViewById('prizePool');
+                if (prizeElement) {
+                    await AnimationService.bounce(prizeElement);
+                }
+                break;
+        }
+    }
+
+    private handleBracketUpdate(update: any) {
+        // Update the bracket data
+        if (this._tournament.matches) {
+            const matchIndex = this._tournament.matches.findIndex(m => m.id === update.id);
+            if (matchIndex !== -1) {
+                this._tournament.matches[matchIndex] = update;
+                this.notifyPropertyChange('tournament', this._tournament);
+            }
+        }
+    }
+
+    openChat() {
+        if (this.chatRoomId) {
+            // Navigate to chat page
+            const navigationEntry = {
+                moduleName: "pages/chat/chat-page",
+                context: {
+                    roomId: this.chatRoomId,
+                    type: 'tournament',
+                    title: this._tournament.title
+                },
+                animated: true
+            };
+            const frame = require("@nativescript/core").Frame;
+            frame.topmost().navigate(navigationEntry);
+        }
+    }
+
+    onUnloaded() {
+        tournamentRealtime.unwatchTournament();
     }
 }

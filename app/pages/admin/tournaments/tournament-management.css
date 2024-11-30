@@ -1,0 +1,87 @@
+.filter-bar {
+    background-color: white;
+    border-bottom-width: 1;
+    border-bottom-color: #dee2e6;
+}
+
+.filter-button {
+    width: 40;
+    height: 40;
+    font-size: 18;
+    background-color: transparent;
+    color: #007bff;
+    margin-left: 10;
+}
+
+.tournament-list {
+    background-color: #f8f9fa;
+}
+
+.tournament-item {
+    background-color: white;
+    margin: 5 10;
+    border-radius: 8;
+    elevation: 1;
+}
+
+.title {
+    font-size: 16;
+    font-weight: bold;
+    color: #212529;
+    margin-bottom: 4;
+}
+
+.details {
+    margin: 4 0;
+}
+
+.detail-text {
+    font-size: 14;
+    color: #6c757d;
+    margin-right: 10;
+}
+
+.time-text {
+    font-size: 12;
+    color: #6c757d;
+}
+
+.status-badge {
+    font-size: 12;
+    padding: 2 8;
+    border-radius: 12;
+    text-transform: capitalize;
+}
+
+.status-open {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-in_progress {
+    background-color: #007bff;
+    color: white;
+}
+
+.status-completed {
+    background-color: #6c757d;
+    color: white;
+}
+
+.status-cancelled {
+    background-color: #dc3545;
+    color: white;
+}
+
+.action-button {
+    width: 40;
+    height: 40;
+    font-size: 18;
+    background-color: transparent;
+    color: #6c757d;
+}
+
+.fas {
+    font-family: "Font Awesome 5 Free", "fa-solid-900";
+    font-weight: 900;
+}

@@ -1,0 +1,106 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo" class="page">
+    <ActionBar title="System Settings" class="action-bar">
+        <NavigationButton text="Back" android.systemIcon="ic_menu_back" />
+        <ActionItem ios.position="right" android.position="actionBar" tap="{{ saveSettings }}">
+            <Label text="&#xf0c7;" class="fas" />
+        </ActionItem>
+    </ActionBar>
+
+    <ScrollView>
+        <StackLayout class="p-10">
+            <!-- General Settings -->
+            <CardView class="card m-5">
+                <StackLayout class="p-10">
+                    <Label text="General Settings" class="h2" />
+                    
+                    <GridLayout rows="auto, auto" columns="*, auto" class="setting-item">
+                        <Label row="0" col="0" text="Maintenance Mode" class="setting-label" />
+                        <Switch row="0" col="1" checked="{{ settings.maintenanceMode }}" />
+                        <Label row="1" colSpan="2" text="Enable to put the app in maintenance mode" 
+                               class="setting-description" />
+                    </GridLayout>
+
+                    <GridLayout rows="auto, auto" columns="*, auto" class="setting-item">
+                        <Label row="0" col="0" text="Allow New Registrations" class="setting-label" />
+                        <Switch row="0" col="1" checked="{{ settings.allowNewRegistrations }}" />
+                        <Label row="1" colSpan="2" text="Allow new users to register" 
+                               class="setting-description" />
+                    </GridLayout>
+                </StackLayout>
+            </CardView>
+
+            <!-- Tournament Settings -->
+            <CardView class="card m-5">
+                <StackLayout class="p-10">
+                    <Label text="Tournament Settings" class="h2" />
+                    
+                    <GridLayout rows="auto, auto" columns="*, auto" class="setting-item">
+                        <Label row="0" col="0" text="Allow Tournament Creation" class="setting-label" />
+                        <Switch row="0" col="1" checked="{{ settings.allowTournamentCreation }}" />
+                        <Label row="1" colSpan="2" text="Allow users to create new tournaments" 
+                               class="setting-description" />
+                    </GridLayout>
+
+                    <GridLayout rows="auto, auto" columns="*, auto" class="setting-item">
+                        <Label row="0" col="0" text="Minimum Entry Fee" class="setting-label" />
+                        <TextField row="0" col="1" text="{{ settings.minimumEntryFee }}" 
+                                 keyboardType="number" width="100" />
+                        <Label row="1" colSpan="2" text="Minimum tournament entry fee (in ₹)" 
+                               class="setting-description" />
+                    </GridLayout>
+
+                    <GridLayout rows="auto, auto" columns="*, auto" class="setting-item">
+                        <Label row="0" col="0" text="Maximum Entry Fee" class="setting-label" />
+                        <TextField row="0" col="1" text="{{ settings.maximumEntryFee }}" 
+                                 keyboardType="number" width="100" />
+                        <Label row="1" colSpan="2" text="Maximum tournament entry fee (in ₹)" 
+                               class="setting-description" />
+                    </GridLayout>
+                </StackLayout>
+            </CardView>
+
+            <!-- Security Settings -->
+            <CardView class="card m-5">
+                <StackLayout class="p-10">
+                    <Label text="Security Settings" class="h2" />
+                    
+                    <GridLayout rows="auto, auto" columns="*, auto" class="setting-item">
+                        <Label row="0" col="0" text="Two-Factor Authentication" class="setting-label" />
+                        <Switch row="0" col="1" checked="{{ settings.requireTwoFactor }}" />
+                        <Label row="1" colSpan="2" text="Require 2FA for admin accounts" 
+                               class="setting-description" />
+                    </GridLayout>
+
+                    <GridLayout rows="auto, auto" columns="*, auto" class="setting-item">
+                        <Label row="0" col="0" text="Session Timeout" class="setting-label" />
+                        <TextField row="0" col="1" text="{{ settings.sessionTimeout }}" 
+                                 keyboardType="number" width="100" />
+                        <Label row="1" colSpan="2" text="Session timeout in minutes" 
+                               class="setting-description" />
+                    </GridLayout>
+                </StackLayout>
+            </CardView>
+
+            <!-- Notification Settings -->
+            <CardView class="card m-5">
+                <StackLayout class="p-10">
+                    <Label text="Notification Settings" class="h2" />
+                    
+                    <GridLayout rows="auto, auto" columns="*, auto" class="setting-item">
+                        <Label row="0" col="0" text="Email Notifications" class="setting-label" />
+                        <Switch row="0" col="1" checked="{{ settings.emailNotifications }}" />
+                        <Label row="1" colSpan="2" text="Send email notifications" 
+                               class="setting-description" />
+                    </GridLayout>
+
+                    <GridLayout rows="auto, auto" columns="*, auto" class="setting-item">
+                        <Label row="0" col="0" text="Push Notifications" class="setting-label" />
+                        <Switch row="0" col="1" checked="{{ settings.pushNotifications }}" />
+                        <Label row="1" colSpan="2" text="Send push notifications" 
+                               class="setting-description" />
+                    </GridLayout>
+                </StackLayout>
+            </CardView>
+        </StackLayout>
+    </ScrollView>
+</Page>

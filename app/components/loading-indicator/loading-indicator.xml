@@ -1,0 +1,7 @@
+<GridLayout class="loading-container" visibility="{{ isLoading ? 'visible' : 'collapsed' }}">
+    <GridLayout class="loading-overlay" opacity="0.4" backgroundColor="black"/>
+    <StackLayout class="loading-content" horizontalAlignment="center" verticalAlignment="center">
+        <ActivityIndicator busy="true" class="loading-indicator"/>
+        <Label text="{{ loadingMessage || 'Loading...' }}" class="loading-text" color="white"/>
+    </StackLayout>
+</GridLayout>

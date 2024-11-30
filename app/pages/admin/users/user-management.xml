@@ -1,0 +1,45 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo" class="page">
+    <ActionBar title="User Management" class="action-bar">
+        <NavigationButton text="Back" android.systemIcon="ic_menu_back" />
+    </ActionBar>
+
+    <GridLayout rows="auto, *">
+        <!-- Search and Filter Bar -->
+        <GridLayout row="0" columns="*, auto" class="filter-bar p-10">
+            <SearchBar col="0" hint="Search users..." text="{{ searchQuery }}" 
+                      submit="{{ onSearch }}" clear="{{ onClear }}" />
+            <Button col="1" text="&#xf1de;" class="fas filter-button" tap="{{ showFilters }}" />
+        </GridLayout>
+
+        <!-- User List -->
+        <ListView row="1" items="{{ users }}" class="user-list">
+            <ListView.itemTemplate>
+                <GridLayout columns="auto, *, auto" class="user-item p-10">
+                    <!-- User Avatar -->
+                    <Image col="0" src="{{ profileImage || '~/assets/default-avatar.png' }}" 
+                           class="user-avatar" />
+
+                    <!-- User Info -->
+                    <StackLayout col="1" class="ml-10">
+                        <Label text="{{ username }}" class="username" />
+                        <Label text="{{ email }}" class="email" />
+                        <GridLayout columns="auto, auto" class="user-stats">
+                            <Label col="0" text="{{ 'Tournaments: ' + tournamentsPlayed }}" 
+                                   class="stat-text" />
+                            <Label col="1" text="{{ 'Wins: ' + tournamentsWon }}" 
+                                   class="stat-text" />
+                        </GridLayout>
+                        <Label text="{{ status }}" class="status-badge status-{{ status }}" />
+                    </StackLayout>
+
+                    <!-- Actions Menu -->
+                    <Button col="2" text="&#xf142;" class="fas action-button" 
+                            tap="{{ $parents['ListView'].onUserAction }}" />
+                </GridLayout>
+            </ListView.itemTemplate>
+        </ListView>
+
+        <!-- Loading Indicator -->
+        <ActivityIndicator rowSpan="2" busy="{{ isLoading }}" />
+    </GridLayout>
+</Page>

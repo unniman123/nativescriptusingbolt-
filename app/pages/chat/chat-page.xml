@@ -1,0 +1,38 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo" class="page">
+    <ActionBar title="{{ roomTitle }}" class="action-bar">
+        <NavigationButton visibility="visible" />
+        <ActionItem ios.position="right" android.position="actionBar" tap="{{ refreshMessages }}">
+            <Label text="&#xf021;" class="fas" />
+        </ActionItem>
+    </ActionBar>
+
+    <GridLayout rows="*, auto">
+        <!-- Messages List -->
+        <ListView row="0" items="{{ messages }}" class="chat-list" separatorColor="transparent">
+            <ListView.itemTemplate>
+                <GridLayout columns="auto, *" class="chat-message m-y-2 m-x-3" class="{{ sender_id === currentUserId ? 'message-sent' : 'message-received' }}">
+                    <!-- Avatar -->
+                    <Image col="0" src="{{ sender.avatar_url || '~/assets/default-avatar.png' }}" 
+                           class="user-avatar" width="40" height="40" 
+                           visibility="{{ sender_id === currentUserId ? 'collapsed' : 'visible' }}" />
+                    
+                    <!-- Message Bubble -->
+                    <StackLayout col="1" class="message-bubble p-2 m-x-2">
+                        <Label text="{{ sender.username }}" class="username" 
+                               visibility="{{ sender_id === currentUserId ? 'collapsed' : 'visible' }}" />
+                        <Label text="{{ message }}" textWrap="true" class="message-text" />
+                        <Label text="{{ created_at | timeAgo }}" class="time-stamp" />
+                    </StackLayout>
+                </GridLayout>
+            </ListView.itemTemplate>
+        </ListView>
+
+        <!-- Message Input -->
+        <GridLayout row="1" columns="*, auto" class="message-input-container p-2">
+            <TextView col="0" hint="Type a message..." text="{{ messageText }}" 
+                      class="message-input" returnKeyType="send" />
+            <Button col="1" text="Send" tap="{{ sendMessage }}" 
+                    isEnabled="{{ messageText.length > 0 }}" class="send-button" />
+        </GridLayout>
+    </GridLayout>
+</Page>

@@ -1,0 +1,73 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo" class="page">
+    <ActionBar title="Admin Dashboard" class="action-bar">
+        <NavigationButton visibility="collapsed" />
+        <ActionItem ios.position="right" android.position="actionBar" tap="{{ logout }}">
+            <Label text="&#xf08b;" class="fas" />
+        </ActionItem>
+    </ActionBar>
+
+    <GridLayout rows="auto, *">
+        <!-- Stats Overview -->
+        <GridLayout row="0" columns="*, *, *" class="stats-container p-10">
+            <StackLayout col="0" class="stat-box" tap="{{ showTournaments }}">
+                <Label text="{{ activeTournaments }}" class="stat-value" />
+                <Label text="Active Tournaments" class="stat-label" />
+            </StackLayout>
+            <StackLayout col="1" class="stat-box" tap="{{ showUsers }}">
+                <Label text="{{ totalUsers }}" class="stat-value" />
+                <Label text="Total Users" class="stat-label" />
+            </StackLayout>
+            <StackLayout col="2" class="stat-box" tap="{{ showRevenue }}">
+                <Label text="{{ '₹' + totalRevenue }}" class="stat-value" />
+                <Label text="Revenue" class="stat-label" />
+            </StackLayout>
+        </GridLayout>
+
+        <!-- Main Menu -->
+        <ScrollView row="1">
+            <StackLayout class="menu-container">
+                <!-- Tournament Management -->
+                <GridLayout columns="auto, *, auto" class="menu-item" tap="{{ navigateToTournaments }}">
+                    <Label col="0" text="&#xf091;" class="fas menu-icon" />
+                    <Label col="1" text="Tournament Management" class="menu-text" />
+                    <Label col="2" text="&#xf054;" class="fas" />
+                </GridLayout>
+
+                <!-- User Management -->
+                <GridLayout columns="auto, *, auto" class="menu-item" tap="{{ navigateToUsers }}">
+                    <Label col="0" text="&#xf007;" class="fas menu-icon" />
+                    <Label col="1" text="User Management" class="menu-text" />
+                    <Label col="2" text="&#xf054;" class="fas" />
+                </GridLayout>
+
+                <!-- Reports -->
+                <GridLayout columns="auto, *, auto" class="menu-item" tap="{{ navigateToReports }}">
+                    <Label col="0" text="&#xf080;" class="fas menu-icon" />
+                    <Label col="1" text="Reports & Analytics" class="menu-text" />
+                    <Label col="2" text="&#xf054;" class="fas" />
+                </GridLayout>
+
+                <!-- System Settings -->
+                <GridLayout columns="auto, *, auto" class="menu-item" tap="{{ navigateToSettings }}">
+                    <Label col="0" text="&#xf013;" class="fas menu-icon" />
+                    <Label col="1" text="System Settings" class="menu-text" />
+                    <Label col="2" text="&#xf054;" class="fas" />
+                </GridLayout>
+
+                <!-- Moderation -->
+                <GridLayout columns="auto, *, auto" class="menu-item" tap="{{ navigateToModeration }}">
+                    <Label col="0" text="&#xf075;" class="fas menu-icon" />
+                    <Label col="1" text="Content Moderation" class="menu-text" />
+                    <Label col="2" text="&#xf054;" class="fas" />
+                </GridLayout>
+
+                <!-- Payments & Transactions -->
+                <GridLayout columns="auto, *, auto" class="menu-item" tap="{{ navigateToPayments }}">
+                    <Label col="0" text="&#xf09d;" class="fas menu-icon" />
+                    <Label col="1" text="Payments & Transactions" class="menu-text" />
+                    <Label col="2" text="&#xf054;" class="fas" />
+                </GridLayout>
+            </StackLayout>
+        </ScrollView>
+    </GridLayout>
+</Page>

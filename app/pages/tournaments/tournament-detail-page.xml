@@ -15,9 +15,9 @@
 
             <!-- Tournament Stats -->
             <GridLayout columns="*, *, *" rows="auto, auto" class="stats-grid m-y-15 text-center">
-                <Label col="0" row="0" text="{{ tournament.current_players }}/{{ tournament.max_players }}" class="stats-value" />
+                <Label id="playersCount" col="0" row="0" text="{{ tournament.current_players }}/{{ tournament.max_players }}" class="stats-value" />
                 <Label col="1" row="0" text="{{ '₹' + tournament.entry_fee }}" class="stats-value" />
-                <Label col="2" row="0" text="{{ '₹' + tournament.prize_pool }}" class="stats-value text-primary" />
+                <Label id="prizePool" col="2" row="0" text="{{ '₹' + tournament.prize_pool }}" class="stats-value text-primary" />
                 
                 <Label col="0" row="1" text="Players" class="stats-label" />
                 <Label col="1" row="1" text="Entry Fee" class="stats-label" />
@@ -48,6 +48,9 @@
                     </ListView.itemTemplate>
                 </ListView>
             </StackLayout>
+
+            <!-- Tournament Chat Button -->
+            <Button text="Tournament Chat" tap="{{ openChat }}" class="btn btn-primary m-y-10" />
 
             <!-- Actions -->
             <StackLayout class="actions-container">

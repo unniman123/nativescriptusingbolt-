@@ -1,15 +1,15 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, AuthFlowType } from '@supabase/supabase-js';
 import fetch from 'cross-fetch';
 import { alert } from '@nativescript/core';
-
-const supabaseUrl = 'https://juouxhxiyxmwyhkupvca.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp1b3V4aHhpeXhtd3loa3VwdmNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI2MjkwMzcsImV4cCI6MjA0ODIwNTAzN30.q26TZuw-kbIWFt5WsR7f8ZqE0fXT-ZAss98GuRI_-bM';
+import { environment } from '../config/environment';
 
 const options = {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: false
+    detectSessionInUrl: false,
+    flowType: 'pkce' as AuthFlowType,
+    redirectTo: environment.email.redirectUrls.confirmEmail,
   },
   global: {
     fetch: fetch
@@ -18,7 +18,7 @@ const options = {
 
 export function initializeSupabase() {
   try {
-    const supabase = createClient(supabaseUrl, supabaseKey, options);
+    const supabase = createClient(environment.supabase.url, environment.supabase.anonKey, options);
     return supabase;
   } catch (error) {
     console.error('Supabase initialization error:', error);

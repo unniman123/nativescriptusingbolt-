@@ -1,0 +1,39 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo" class="page">
+    <ActionBar title="Leaderboard" class="action-bar">
+        <ActionItem ios.position="right" android.position="actionBar" tap="{{ refreshLeaderboard }}">
+            <Label text="&#xf021;" class="fas" />
+        </ActionItem>
+    </ActionBar>
+
+    <GridLayout>
+        <ListView items="{{ leaderboardEntries }}" class="leaderboard-list">
+            <ListView.itemTemplate>
+                <GridLayout columns="auto, auto, *, auto" class="leaderboard-item p-3" class="{{ rank <= 3 ? 'top-' + rank : '' }}">
+                    <!-- Rank -->
+                    <Label col="0" text="{{ rank }}" class="rank-number m-r-3" />
+                    
+                    <!-- Avatar -->
+                    <Image col="1" src="{{ user.avatar_url || '~/assets/default-avatar.png' }}" 
+                           class="user-avatar m-r-3" width="40" height="40" />
+                    
+                    <!-- User Info -->
+                    <StackLayout col="2">
+                        <Label text="{{ user.username }}" class="username" />
+                        <GridLayout columns="auto, auto, auto" class="stats">
+                            <Label col="0" text="{{ wins + ' W' }}" class="wins" />
+                            <Label col="1" text="{{ losses + ' L' }}" class="losses m-l-2" />
+                            <Label col="2" text="{{ tournaments_won + ' 🏆' }}" class="tournaments m-l-2" 
+                                   visibility="{{ tournaments_won > 0 ? 'visible' : 'collapsed' }}" />
+                        </GridLayout>
+                    </StackLayout>
+                    
+                    <!-- Points -->
+                    <Label col="3" text="{{ points + ' pts' }}" class="points" />
+                </GridLayout>
+            </ListView.itemTemplate>
+        </ListView>
+
+        <!-- Loading Indicator -->
+        <ActivityIndicator busy="{{ isLoading }}" />
+    </GridLayout>
+</Page>
