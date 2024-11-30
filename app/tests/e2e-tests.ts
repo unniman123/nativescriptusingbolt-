@@ -65,7 +65,11 @@ async function runE2ETests() {
 
         // Test profile update
         try {
-            await ProfileService.updateProfile({
+            const currentUser = authService.currentUser;
+            if (!currentUser) {
+                throw new Error('No current user found');
+            }
+            await ProfileService.updateProfile(currentUser.id, {
                 username: `testuser_${Date.now()}`,
                 game_id: 'GAME#123'
             });
